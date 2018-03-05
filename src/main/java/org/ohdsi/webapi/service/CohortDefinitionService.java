@@ -54,6 +54,7 @@ import org.ohdsi.webapi.cohortdefinition.CohortGenerationInfo;
 import org.ohdsi.webapi.cohortdefinition.ExpressionType;
 import org.ohdsi.webapi.cohortdefinition.GenerateCohortTasklet;
 import org.ohdsi.webapi.GenerationStatus;
+import org.ohdsi.webapi.cohortdefinition.CleanupCohortTasklet;
 import org.ohdsi.webapi.cohortdefinition.GenerationJobExecutionListener;
 import org.ohdsi.webapi.cohortdefinition.InclusionRuleReport;
 import org.ohdsi.webapi.cohortfeatures.GenerateCohortFeaturesTasklet;
@@ -73,7 +74,6 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.job.builder.SimpleJobBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -81,6 +81,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 /**
  *
@@ -448,7 +449,8 @@ public class CohortDefinitionService extends AbstractDaoService {
     Source source = getSourceRepository().findBySourceKey(sourceKey);
     String cdmTableQualifier = source.getTableQualifier(SourceDaimon.DaimonType.CDM);    
     String resultsTableQualifier = source.getTableQualifier(SourceDaimon.DaimonType.Results);    
-    
+    String vocabularyTableQualifier = source.getTableQualifierOrNull(SourceDaimon.DaimonType.Vocabulary);
+		
     DefaultTransactionDefinition requresNewTx = new DefaultTransactionDefinition();
     requresNewTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     TransactionStatus initStatus = this.getTransactionTemplate().getTransactionManager().getTransaction(requresNewTx);
@@ -472,6 +474,8 @@ public class CohortDefinitionService extends AbstractDaoService {
     builder.addString("cdm_database_schema", cdmTableQualifier);
     builder.addString("results_database_schema", resultsTableQualifier);
     builder.addString("target_database_schema", resultsTableQualifier);
+		if (vocabularyTableQualifier != null)
+			builder.addString("vocabulary_database_schema", vocabularyTableQualifier);
     builder.addString("target_dialect", source.getSourceDialect());
     builder.addString("target_table", "cohort");
     builder.addString("cohort_definition_id", ("" + id));
@@ -560,9 +564,37 @@ public class CohortDefinitionService extends AbstractDaoService {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/{id}")
   public void delete(@PathParam("id") final int id) {
-   cohortDefinitionRepository.delete(id);
-  }
-  
+		
+		// perform the JPA update in a separate transaction
+		this.getTransactionTemplateRequiresNew().execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(final TransactionStatus status) {
+				cohortDefinitionRepository.delete(id);
+			}
+		});
+
+		JobParametersBuilder builder = new JobParametersBuilder();
+		builder.addString("jobName", String.format("Cleanup cohort %d.",id));
+		builder.addString("cohort_definition_id", ("" + id));
+
+		final JobParameters jobParameters = builder.toJobParameters();
+
+		log.info(String.format("Beginning cohort cleanup for cohort definition id: \n %s", "" + id));
+
+		CleanupCohortTasklet cleanupTasklet = new CleanupCohortTasklet(this.getTransactionTemplateNoTransaction(),this.getSourceRepository());
+
+		Step cleanupStep = stepBuilders.get("cohortDefinition.cleanupCohort")
+			.tasklet(cleanupTasklet)
+			.build();
+
+		SimpleJobBuilder cleanupJobBuilder = jobBuilders.get("cleanupCohort")
+			.start(cleanupStep);
+
+		Job cleanupCohortJob = cleanupJobBuilder.build();
+
+		this.jobTemplate.launch(cleanupCohortJob, jobParameters);
+	}
+	
   private ArrayList<ConceptSetExport> getConceptSetExports(CohortDefinition def, SourceInfo vocabSource) throws RuntimeException {
     ArrayList<ConceptSetExport> exports = new ArrayList<>();
     ObjectMapper mapper = new ObjectMapper();

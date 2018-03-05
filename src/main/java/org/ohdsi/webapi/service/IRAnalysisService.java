@@ -238,7 +238,7 @@ public class IRAnalysisService extends AbstractDaoService {
 
     String query = "select strata_mask, person_count, time_at_risk, cases from @resultsTableQualifier.ir_analysis_result where analysis_id = @analysis_id and target_id = @target_id and outcome_id = @outcome_id";
     Object[] paramValues = {analysisId, targetId, outcomeId};
-    String[] params = {"analysisId", "targetId", "outcomeId"};
+    String[] params = {"analysis_id", "target_id", "outcome_id"};
     PreparedStatementRenderer psr = new PreparedStatementRenderer(source, query, "resultsTableQualifier", resultsTableQualifier, params, paramValues, SessionUtils.sessionId());
     // [0] is the inclusion rule bitmask, [1] is the count of the match
     List<StratifyReportItem> items = getSourceJdbcTemplate(source).query(psr.getSql(), psr.getSetter(), stratifyResultsMapper);
@@ -408,6 +408,12 @@ public class IRAnalysisService extends AbstractDaoService {
     Source source = this.getSourceRepository().findBySourceKey(sourceKey);
     String resultsTableQualifier = source.getTableQualifier(SourceDaimon.DaimonType.Results);
     String cdmTableQualifier = source.getTableQualifier(SourceDaimon.DaimonType.CDM);
+    String vocabularyTableQualifier = source.getTableQualifierOrNull(SourceDaimon.DaimonType.Vocabulary);
+		
+		// No vocabulary table qualifier found - use the CDM as a default
+    if (vocabularyTableQualifier == null) {
+      vocabularyTableQualifier = cdmTableQualifier;
+    }
 
     DefaultTransactionDefinition requresNewTx = new DefaultTransactionDefinition();
     requresNewTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -438,6 +444,7 @@ public class IRAnalysisService extends AbstractDaoService {
     builder.addString("jobName", "IR Analysis: " + analysis.getId() + " : " + source.getSourceName() + " (" + source.getSourceKey() + ")");
     builder.addString("cdm_database_schema", cdmTableQualifier);
     builder.addString("results_database_schema", resultsTableQualifier);
+    builder.addString("vocabulary_database_schema", vocabularyTableQualifier);
     builder.addString("target_dialect", source.getSourceDialect());
     builder.addString("analysis_id", ("" + analysisId));
     builder.addString("source_id", ("" + source.getSourceId()));

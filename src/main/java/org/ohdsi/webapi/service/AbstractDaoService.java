@@ -23,6 +23,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.sql.Connection;
+import java.util.Properties;
+
 /**
  *
  */
@@ -83,6 +86,9 @@ public abstract class AbstractDaoService {
   @Autowired
   private TransactionTemplate transactionTemplateRequiresNew;
 
+	@Autowired
+  private TransactionTemplate transactionTemplateNoTransaction;
+
   public SourceRepository getSourceRepository() {
     return sourceRepository;
   }
@@ -109,6 +115,7 @@ public abstract class AbstractDaoService {
   }
 
   public JdbcTemplate getSourceJdbcTemplate(Source source) {
+
     DriverManagerDataSource dataSource = new DriverManagerDataSource(source.getSourceConnection());
     JdbcTemplate template = new JdbcTemplate(dataSource);
     return template;
@@ -197,13 +204,13 @@ public abstract class AbstractDaoService {
     return transactionTemplateRequiresNew;
   }
 
-  /**
-   * @param transactionTemplateRequiresNew the transactionTemplateRequiresNew to
-   * set
+	/**
+   * @return the transactionTemplateNoTransaction
    */
-  public void setTransactionTemplateRequiresNew(TransactionTemplate transactionTemplateRequiresNew) {
-    this.transactionTemplateRequiresNew = transactionTemplateRequiresNew;
+  public TransactionTemplate getTransactionTemplateNoTransaction() {
+    return transactionTemplateNoTransaction;
   }
+	
   
   /**
    * @return the ohdsiSchema
