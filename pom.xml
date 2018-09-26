@@ -617,6 +617,12 @@
       <groupId>com.odysseusinc.arachne</groupId>
       <artifactId>execution-engine-commons</artifactId>
       <version>${arachne.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.odysseusinc</groupId>
