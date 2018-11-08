@@ -15,48 +15,8 @@
  */
 package org.ohdsi.webapi.service;
 
-import static org.ohdsi.webapi.Constants.Params.ANALYSIS_ID;
-import static org.ohdsi.webapi.Constants.Params.CDM_DATABASE_SCHEMA;
-import static org.ohdsi.webapi.Constants.Params.JOB_NAME;
-import static org.ohdsi.webapi.Constants.Params.RESULTS_DATABASE_SCHEMA;
-import static org.ohdsi.webapi.Constants.Params.SOURCE_ID;
-import static org.ohdsi.webapi.Constants.Params.TARGET_DIALECT;
-import static org.ohdsi.webapi.Constants.Params.VOCABULARY_DATABASE_SCHEMA;
-import static org.ohdsi.webapi.util.SecurityUtils.whitelist;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.opencsv.CSVWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.StringWriter;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletContext;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
@@ -64,6 +24,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.ohdsi.circe.helper.ResourceHelper;
 import org.ohdsi.sql.SqlTranslate;
 import org.ohdsi.webapi.GenerationStatus;
+import org.ohdsi.webapi.Pagination;
+import org.ohdsi.webapi.facets.AuthorFacetProvider;
+import org.ohdsi.webapi.facets.CreatedDateFacetProvider;
+import org.ohdsi.webapi.facets.FacetedSearchService;
+import org.ohdsi.webapi.facets.FilteredPageRequest;
+import org.ohdsi.webapi.facets.ModifiedDateFacetProvider;
+import org.ohdsi.webapi.facets.NameFilterProvider;
 import org.ohdsi.webapi.ircalc.AnalysisReport;
 import org.ohdsi.webapi.ircalc.ExecutionInfo;
 import org.ohdsi.webapi.ircalc.IRExecutionInfoRepository;
@@ -91,6 +58,9 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -98,6 +68,39 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.ServletContext;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayOutputStream;
+import java.io.StringWriter;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static org.ohdsi.webapi.Constants.Params.*;
+import static org.ohdsi.webapi.util.SecurityUtils.whitelist;
 
 /**
  *
@@ -110,32 +113,47 @@ public class IRAnalysisService extends AbstractDaoService implements GeneratesNo
   private static final Logger log = LoggerFactory.getLogger(IRAnalysisService.class);
   private final static String STRATA_STATS_QUERY_TEMPLATE = ResourceHelper.GetResourceAsString("/resources/incidencerate/sql/strata_stats.sql");
   private static final String NAME = "irAnalysis";
+  private static final String ENTITY_NAME = "ir_analysis";
 
 
-    @Autowired
-  private IncidenceRateAnalysisRepository irAnalysisRepository;
+  private final IncidenceRateAnalysisRepository irAnalysisRepository;
 
-  @Autowired
-  private IRExecutionInfoRepository irExecutionInfoRepository;
+  private final IRExecutionInfoRepository irExecutionInfoRepository;
 
-  @Autowired
-  private JobBuilderFactory jobBuilders;
+  private final JobBuilderFactory jobBuilders;
 
-  @Autowired
-  private StepBuilderFactory stepBuilders;
+  private final StepBuilderFactory stepBuilders;
 
-  @Autowired
-  private JobTemplate jobTemplate;
+  private final JobTemplate jobTemplate;
 
-  @Autowired
-  private UserRepository userRepository;
+  private final UserRepository userRepository;
 
-  @Autowired
-  private Security security;
+  private final Security security;
+
+  private final ConversionService conversionService;
+
+  private final FacetedSearchService facetedSearchService;
+
 
   @Context
   ServletContext context;
-  
+
+  @Autowired
+  public IRAnalysisService(IncidenceRateAnalysisRepository irAnalysisRepository, IRExecutionInfoRepository irExecutionInfoRepository, JobBuilderFactory jobBuilders, StepBuilderFactory stepBuilders, JobTemplate jobTemplate, UserRepository userRepository, Security security, ConversionService conversionService, FacetedSearchService facetedSearchService) {
+    this.irAnalysisRepository = irAnalysisRepository;
+    this.irExecutionInfoRepository = irExecutionInfoRepository;
+    this.jobBuilders = jobBuilders;
+    this.stepBuilders = stepBuilders;
+    this.jobTemplate = jobTemplate;
+    this.userRepository = userRepository;
+    this.security = security;
+    this.conversionService = conversionService;
+    this.facetedSearchService = facetedSearchService;
+
+    facetedSearchService.registerFacets(ENTITY_NAME, AuthorFacetProvider.FACET_NAME, CreatedDateFacetProvider.FACET_NAME, ModifiedDateFacetProvider.FACET_NAME);
+    facetedSearchService.registerColumns(ENTITY_NAME, AuthorFacetProvider.FACET_NAME, NameFilterProvider.COLUMN_NAME);
+  }
+
   private ExecutionInfo findExecutionInfoBySourceId(Collection<ExecutionInfo> infoList, Integer sourceId) {
     for (ExecutionInfo info : infoList) {
       if (sourceId.equals(info.getId().getSourceId())) {
@@ -320,22 +338,11 @@ public class IRAnalysisService extends AbstractDaoService implements GeneratesNo
   @GET
   @Path("/")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<IRAnalysisService.IRAnalysisListItem> getIRAnalysisList() {
-
-    return getTransactionTemplate().execute(transactionStatus -> {
-      Iterable<IncidenceRateAnalysis> analysisList = this.irAnalysisRepository.findAll();
-      return StreamSupport.stream(analysisList.spliterator(), false).map(p -> {
-        IRAnalysisService.IRAnalysisListItem item = new IRAnalysisService.IRAnalysisListItem();
-        item.id = p.getId();
-        item.name = p.getName();
-        item.description = p.getDescription();
-        item.createdBy = UserUtils.nullSafeLogin(p.getCreatedBy());
-        item.createdDate = p.getCreatedDate();
-        item.modifiedBy = UserUtils.nullSafeLogin(p.getModifiedBy());
-        item.modifiedDate = p.getModifiedDate();
-        return item;
-      }).collect(Collectors.toList());
-    });
+  public Page<IRAnalysisListItem> getIRAnalysisList(@Pagination Pageable pageable) {
+    return getTransactionTemplate().execute(ts -> (pageable instanceof FilteredPageRequest
+            ? facetedSearchService.getPage((FilteredPageRequest) pageable, irAnalysisRepository, ENTITY_NAME)
+            : irAnalysisRepository.findAll(pageable))
+            .map(p -> conversionService.convert(p, IRAnalysisListItem.class)));
   }
 
   /**

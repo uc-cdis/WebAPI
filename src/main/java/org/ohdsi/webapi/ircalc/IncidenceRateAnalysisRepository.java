@@ -15,16 +15,18 @@
  */
 package org.ohdsi.webapi.ircalc;
 
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  *
  * @author Chris Knoll <cknoll@ohdsi.org>
  */
-public interface IncidenceRateAnalysisRepository extends CrudRepository<IncidenceRateAnalysis, Integer> {
+public interface IncidenceRateAnalysisRepository extends PagingAndSortingRepository<IncidenceRateAnalysis, Integer>, JpaSpecificationExecutor<IncidenceRateAnalysis> {
   
-  @Query("select ira from IncidenceRateAnalysis AS ira LEFT JOIN FETCH ira.details as d")          
-  public Iterable<IncidenceRateAnalysis> findAll();
+//  @Query("select ira from IncidenceRateAnalysis AS ira LEFT JOIN FETCH ira.details as d")
+  Page<IncidenceRateAnalysis> findAll(Pageable pageable);
   
 }
