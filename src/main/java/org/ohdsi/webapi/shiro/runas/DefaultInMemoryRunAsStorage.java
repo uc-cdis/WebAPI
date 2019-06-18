@@ -1,8 +1,8 @@
 package org.ohdsi.webapi.shiro.runas;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -13,7 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class DefaultInMemoryRunAsStorage implements RunAsStorage {
 
   private final Map<Object, List<PrincipalCollection>> principalsMap = new ConcurrentHashMap<>();
-
+  private final Logger logger = LoggerFactory.getLogger(DefaultInMemoryRunAsStorage.class);
   @Override
   public void pushPrincipals(Object principal, PrincipalCollection principals) {
 
@@ -24,6 +24,7 @@ public class DefaultInMemoryRunAsStorage implements RunAsStorage {
     if (Objects.isNull(stack)) {
       stack = new CopyOnWriteArrayList<>();
       principalsMap.put(principal, stack);
+      logger.error("put stack to principalsMap with principal: {}", principal);
     }
     stack.add(0, principals);
   }
@@ -34,9 +35,11 @@ public class DefaultInMemoryRunAsStorage implements RunAsStorage {
     PrincipalCollection popped = null;
 
     List<PrincipalCollection> stack = getRunAsPrincipalStack(principal);
+    logger.error("popPrincipals size: {}", stack == null ? 0 : stack.size());
     if (!Objects.isNull(stack) && !stack.isEmpty()) {
       popped = stack.remove(0);
       if (stack.isEmpty()) {
+      logger.error("popPrincipals, stack is empty removeRunAsStack");
         removeRunAsStack(principal);
       }
     }
@@ -50,12 +53,14 @@ public class DefaultInMemoryRunAsStorage implements RunAsStorage {
     if (Objects.isNull(principal)) {
       throw new IllegalArgumentException("Token should not be null value");
     }
-    return principalsMap.get(principal);
+    List<PrincipalCollection> principalCollections = principalsMap.get(principal);
+    logger.error("getRunAsPrincipalStack: {}, size: {}", principal, principalCollections == null ? 0 : principalCollections.size());
+    return principalCollections;
   }
 
   @Override
   public void removeRunAsStack(Object principal) {
-
+    logger.error("removeRunAsStack: {}", principal);
     principalsMap.remove(principal);
   }
 }
