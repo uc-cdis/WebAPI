@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
@@ -107,6 +108,14 @@ public class PredictionServiceImpl extends AnalysisExecutionSupport implements P
     private ConversionService conversionService;    
     
     private final String EXEC_SCRIPT = ResourceHelper.GetResourceAsString("/resources/prediction/r/runAnalysis.R");
+
+    @PostConstruct
+    private void postConstruct() {
+
+        if (StringUtils.isNotEmpty(extenalPackagePath)) {
+            log.info(String.format("Using external Prediction skeleton: %s", extenalPackagePath));
+        }
+    }
 
     @Override
     public Iterable<PredictionAnalysis> getAnalysisList() {

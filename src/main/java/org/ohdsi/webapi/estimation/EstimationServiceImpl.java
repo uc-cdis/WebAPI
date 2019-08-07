@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
@@ -127,6 +128,14 @@ public class EstimationServiceImpl extends AnalysisExecutionSupport implements E
 
     @Value("${organization.name}")
     private String organizationName;
+
+    @PostConstruct
+    private void postConstruct() {
+
+        if (StringUtils.isNotEmpty(extenalPackagePath)) {
+            log.info(String.format("Using external Estimation skeleton: %s", extenalPackagePath));
+        }
+    }
 
     @Override
     public Iterable<Estimation> getAnalysisList() {
