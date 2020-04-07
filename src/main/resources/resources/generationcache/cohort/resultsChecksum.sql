@@ -62,6 +62,6 @@ WITH partials AS (
   WHERE design_hash = @design_hash
 )
 SELECT AVG(
-  CAST(CAST(CONVERT(VARBINARY, HASHBYTES('MD5',line), 1) AS NUMERIC(20,0)) AS NUMERIC(20,0))
+  CAST(CAST(CONVERT(VARBINARY, HASHBYTES('MD5',line), 1) AS BIGINT) AS BIGINT)
 ) as checksum
 FROM partials;
