@@ -264,7 +264,8 @@ public class AtlasRegularSecurity extends AtlasSecurity {
         List<Client> clients = new ArrayList<>(Arrays.asList(
                 googleClient,
                 facebookClient,
-                githubClient
+                githubClient,
+                oidcClient
                 // ... put new clients here and then assign them to filters ...
         ));
         if (StringUtils.isNotBlank(configuration.getClientId())) {
