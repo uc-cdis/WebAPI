@@ -38,9 +38,8 @@ public class AtlasGoogleSecurity extends AtlasSecurity {
     @Override
     protected FilterChainBuilder getFilterChainBuilder() {
 
-        FilterChainBuilder filterChainBuilder = new FilterChainBuilder()
+        FilterChainBuilder filterChainBuilder = super.getFilterChainBuilder()
                 .setRestFilters(SSL, NO_SESSION_CREATION, CORS, NO_CACHE)
-                .setAuthcFilter(JWT_AUTHC)
                 .setAuthzFilter(AUTHZ);
 
         setupProtectedPaths(filterChainBuilder);

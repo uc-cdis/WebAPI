@@ -14,6 +14,7 @@ import org.ohdsi.webapi.shiro.Entities.RoleEntity;
 import org.ohdsi.webapi.shiro.PermissionManager;
 import org.ohdsi.webapi.shiro.filters.CorsFilter;
 import org.ohdsi.webapi.shiro.filters.ForceSessionCreationFilter;
+import org.ohdsi.webapi.shiro.filters.GoogleAccessTokenFilter;
 import org.ohdsi.webapi.shiro.filters.ProcessResponseContentFilterImpl;
 import org.ohdsi.webapi.shiro.filters.ResponseNoCacheFilter;
 import org.ohdsi.webapi.shiro.filters.SkipFurtherFilteringFilter;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.web.client.RestTemplate;
 import waffle.shiro.negotiate.NegotiateAuthenticationStrategy;
 
 import javax.annotation.PostConstruct;
@@ -34,12 +36,16 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.ohdsi.webapi.shiro.management.FilterTemplates.ACCESS_AUTHC;
 import static org.ohdsi.webapi.shiro.management.FilterTemplates.AUTHZ;
 import static org.ohdsi.webapi.shiro.management.FilterTemplates.COPY_ESTIMATION;
 import static org.ohdsi.webapi.shiro.management.FilterTemplates.COPY_PREDICTION;
@@ -69,6 +75,7 @@ import static org.ohdsi.webapi.shiro.management.FilterTemplates.DELETE_PLP;
 import static org.ohdsi.webapi.shiro.management.FilterTemplates.DELETE_PREDICTION;
 import static org.ohdsi.webapi.shiro.management.FilterTemplates.DELETE_SOURCE;
 import static org.ohdsi.webapi.shiro.management.FilterTemplates.FORCE_SESSION_CREATION;
+import static org.ohdsi.webapi.shiro.management.FilterTemplates.JWT_AUTHC;
 import static org.ohdsi.webapi.shiro.management.FilterTemplates.NO_CACHE;
 import static org.ohdsi.webapi.shiro.management.FilterTemplates.NO_SESSION_CREATION;
 import static org.ohdsi.webapi.shiro.management.FilterTemplates.SKIP_IF_NOT_POST;
@@ -104,6 +111,11 @@ public abstract class AtlasSecurity extends Security {
 
   @Value("${security.ssl.enabled}")
   private boolean sslEnabled;
+
+  @Value("${security.google.accessToken.enabled}")
+  private Boolean googleAccessTokenEnabled;
+
+  private RestTemplate restTemplate = new RestTemplate();
 
   protected final Set<String> defaultRoles = new LinkedHashSet<>();
 
@@ -222,7 +234,14 @@ public abstract class AtlasSecurity extends Security {
       return getFilterChainBuilder().build();
   }
 
-  protected abstract FilterChainBuilder getFilterChainBuilder();
+  protected FilterChainBuilder getFilterChainBuilder() {
+    List<FilterTemplates> authcFilters = googleAccessTokenEnabled ? Arrays.asList(ACCESS_AUTHC, JWT_AUTHC) :
+            Collections.singletonList(JWT_AUTHC);
+
+    FilterChainBuilder filterChainBuilder = new FilterChainBuilder()
+            .setAuthcFilter(authcFilters.toArray(new FilterTemplates[0]));
+    return filterChainBuilder;
+  }
 
   protected FilterChainBuilder setupProtectedPaths(FilterChainBuilder filterChainBuilder) {
 
@@ -310,6 +329,7 @@ public abstract class AtlasSecurity extends Security {
     filters.put(SKIP_IF_NOT_PUT_OR_DELETE, this.getskipFurtherFiltersIfNotPutOrDeleteFilter());
     filters.put(SSL, this.getSslFilter());
     filters.put(NO_CACHE, this.getNoCacheFilter());
+    filters.put(ACCESS_AUTHC, new GoogleAccessTokenFilter(restTemplate, authorizer, Collections.emptySet()));
 
     filters.put(DELETE_COHORT_CHARACTERIZATION, this.getDeletePermissionsOnDeleteFilter(cohortCharacterizationCreatorPermissionTemplates));
     filters.put(DELETE_PATHWAY_ANALYSIS, this.getDeletePermissionsOnDeleteFilter(pathwayAnalysisCreatorPermissionTemplate));

@@ -136,9 +136,6 @@ public class AtlasRegularSecurity extends AtlasSecurity {
     @Value("${security.ad.ignore.partial.result.exception}")
     private Boolean adIgnorePartialResultException;
 
-    @Value("${security.google.accessToken.enabled}")
-    private Boolean googleAccessTokenEnabled;
-
     @Autowired
     @Qualifier("activeDirectoryProvider")
     private LdapProvider adLdapProvider;
@@ -191,7 +188,6 @@ public class AtlasRegularSecurity extends AtlasSecurity {
         filters.put(UPDATE_TOKEN, new UpdateAccessTokenFilter(this.authorizer, this.defaultRoles, this.tokenExpirationIntervalInSeconds,
                 this.redirectUrl));
 
-        filters.put(ACCESS_AUTHC, new GoogleAccessTokenFilter(restTemplate, permissionManager, Collections.emptySet()));
         filters.put(JWT_AUTHC, new AtlasJwtAuthFilter());
         filters.put(JDBC_FILTER, new JdbcAuthFilter(eventPublisher));
         filters.put(KERBEROS_FILTER, new KerberosAuthFilter());
@@ -271,14 +267,11 @@ public class AtlasRegularSecurity extends AtlasSecurity {
     @Override
     protected FilterChainBuilder getFilterChainBuilder() {
 
-        List<FilterTemplates> authcFilters = googleAccessTokenEnabled ? Arrays.asList(ACCESS_AUTHC, JWT_AUTHC) :
-                Collections.singletonList(JWT_AUTHC);
         // the order does matter - first match wins
-        FilterChainBuilder filterChainBuilder = new FilterChainBuilder()
+        FilterChainBuilder filterChainBuilder = super.getFilterChainBuilder()
                 .setBeforeOAuthFilters(SSL, CORS, FORCE_SESSION_CREATION)
                 .setAfterOAuthFilters(UPDATE_TOKEN, SEND_TOKEN_IN_URL)
                 .setRestFilters(SSL, NO_SESSION_CREATION, CORS, NO_CACHE)
-                .setAuthcFilter(authcFilters.toArray(new FilterTemplates[0]))
                 .setAuthzFilter(AUTHZ)
                 // login/logout
                 .addRestPath("/user/login/openid", FORCE_SESSION_CREATION, OIDC_AUTH, UPDATE_TOKEN, SEND_TOKEN_IN_REDIRECT)
