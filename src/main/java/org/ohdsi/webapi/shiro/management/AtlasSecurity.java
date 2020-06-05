@@ -213,6 +213,7 @@ public abstract class AtlasSecurity extends Security {
 
   @PostConstruct
   private void init() {
+    log.info("GOOGLE ACCESS TOKEN: " + googleAccessTokenEnabled);
     fillFilters();
     initRolesForSources();
   }
