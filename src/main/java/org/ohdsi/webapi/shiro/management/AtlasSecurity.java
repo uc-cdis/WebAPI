@@ -237,6 +237,8 @@ public abstract class AtlasSecurity extends Security {
   protected FilterChainBuilder getFilterChainBuilder() {
     List<FilterTemplates> authcFilters = googleAccessTokenEnabled ? Arrays.asList(ACCESS_AUTHC, JWT_AUTHC) :
             Collections.singletonList(JWT_AUTHC);
+    log.info("googleAccessTokenEnabled: {}", googleAccessTokenEnabled);
+    log.info("authcFilters.size: {}", authcFilters.size());
 
     FilterChainBuilder filterChainBuilder = new FilterChainBuilder()
             .setAuthcFilter(authcFilters.toArray(new FilterTemplates[0]));

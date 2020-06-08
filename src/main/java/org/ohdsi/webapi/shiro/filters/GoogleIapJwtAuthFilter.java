@@ -20,6 +20,8 @@ import org.ohdsi.webapi.Constants;
 import org.ohdsi.webapi.shiro.PermissionManager;
 import org.ohdsi.webapi.shiro.tokens.JwtAuthToken;
 import org.pac4j.core.profile.CommonProfile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -34,6 +36,7 @@ import java.util.*;
 
 public class GoogleIapJwtAuthFilter extends AtlasAuthFilter {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private static final String PUBLIC_KEY_VERIFICATION_URL =
             "https://www.gstatic.com/iap/verify/public_key-jwk";
     private static final String IAP_ISSUER_URL = "https://cloud.google.com/iap";
@@ -62,7 +65,7 @@ public class GoogleIapJwtAuthFilter extends AtlasAuthFilter {
 
     @Override
     protected JwtAuthToken createToken(ServletRequest request, ServletResponse response) throws Exception {
-
+        log.info("GoogleIapJwtAuthFilter.createToken");
         String jwtToken = getJwtToken(request);
         String login = verifyJwt(
                 jwtToken,
@@ -76,7 +79,7 @@ public class GoogleIapJwtAuthFilter extends AtlasAuthFilter {
 
     @Override
     protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
-
+        log.info("GoogleIapJwtAuthFilter.onAccessDenied");
         HttpServletResponse httpResponse = WebUtils.toHttp(response);
         httpResponse.setHeader(Constants.Headers.AUTH_PROVIDER, Constants.SecurityProviders.GOOGLE);
 
@@ -105,6 +108,7 @@ public class GoogleIapJwtAuthFilter extends AtlasAuthFilter {
 
     private ECPublicKey getKey(String kid, String alg) throws Exception {
 
+        log.info("GoogleIapJwtAuthFilter.getKey");
         JWK jwk = keyCache.get(kid);
         if (jwk == null) {
             // update cache loading jwk public key data from url
@@ -122,6 +126,7 @@ public class GoogleIapJwtAuthFilter extends AtlasAuthFilter {
     }
 
     private String getJwtToken(ServletRequest request) {
+        log.info("GoogleIapJwtAuthFilter.getJwtToken");
 
         HttpServletRequest httpRequest = WebUtils.toHttp(request);
         return httpRequest.getHeader(JWT_HEADER);

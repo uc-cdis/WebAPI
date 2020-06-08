@@ -48,6 +48,7 @@ public class GoogleAccessTokenFilter extends AtlasAuthFilter {
     @Override
     protected AuthenticationToken createToken(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
 
+        logger.info("GoogleAccessTokenFilter.createToken");
         String token = TokenManager.extractToken(servletRequest);
         String userId = getTokenInfo(token);
         return Optional.ofNullable(userId).map(JwtAuthToken::new)
@@ -56,7 +57,7 @@ public class GoogleAccessTokenFilter extends AtlasAuthFilter {
 
     @Override
     protected boolean onAccessDenied(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
-
+        logger.info("GoogleAccessTokenFilter.onAccessDenied");
         try {
             if (TokenManager.extractToken(servletRequest) != null) {
                 boolean loggedIn = executeLogin(servletRequest, servletResponse);
@@ -72,7 +73,7 @@ public class GoogleAccessTokenFilter extends AtlasAuthFilter {
     }
 
     private String getTokenInfo(String token) throws IOException {
-
+        logger.info("GoogleAccessTokenFilter.getTokenInfo");
         String result = null;
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(String.format(VALIDATE_URL, token), String.class);
