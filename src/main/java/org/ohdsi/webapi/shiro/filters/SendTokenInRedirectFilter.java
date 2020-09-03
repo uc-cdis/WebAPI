@@ -26,6 +26,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static org.ohdsi.webapi.shiro.management.AtlasSecurity.AUTH_CLIENT_OPENID;
+
 
 public class SendTokenInRedirectFilter extends AdviceFilter {
     private String redirectUrl;
@@ -38,7 +40,7 @@ public class SendTokenInRedirectFilter extends AdviceFilter {
     protected boolean preHandle(ServletRequest request, ServletResponse response) {
         String jwt = (String)request.getAttribute("TOKEN");
         try {
-            ((HttpServletResponse) response).sendRedirect(redirectUrl + jwt);
+            ((HttpServletResponse) response).sendRedirect(redirectUrl + "/" + AUTH_CLIENT_OPENID + "/" + jwt);
         } catch (IOException e) {
             e.printStackTrace();
         }

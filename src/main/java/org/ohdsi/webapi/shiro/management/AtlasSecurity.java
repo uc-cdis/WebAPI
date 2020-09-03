@@ -50,6 +50,7 @@ public abstract class AtlasSecurity extends Security {
   public static final String PERMISSIONS_ATTRIBUTE = "PERMISSIONS";
 
   public static final String AUTH_CLIENT_SAML = "AUTH_CLIENT_SAML";
+  public static final String AUTH_CLIENT_OPENID = "AUTH_CLIENT_OPENID";
   public static final String AUTH_CLIENT_ALL = "*";
 
   private final Logger log = LoggerFactory.getLogger(getClass());
