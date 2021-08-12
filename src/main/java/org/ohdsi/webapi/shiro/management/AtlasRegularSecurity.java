@@ -321,7 +321,7 @@ public class AtlasRegularSecurity extends AtlasSecurity {
 
         if (this.openidAuthEnabled) {
             OidcConfiguration configuration = oidcConfCreator.build();
-            configuration.setScope("openid profile email user");
+            configuration.setScope("user");
             OidcClient oidcClient = new OidcClient(configuration);
             oidcClient.setCallbackUrl(oauthApiCallback);
             oidcClient.setCallbackUrlResolver(urlResolver);
