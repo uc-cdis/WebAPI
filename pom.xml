@@ -1358,17 +1358,17 @@
         <dependency>
           <groupId>com.google.http-client</groupId>
           <artifactId>google-http-client</artifactId>
-          <version>1.28.0</version>
+          <version>1.32.1</version>
         </dependency>
         <dependency>
           <groupId>com.google.http-client</groupId>
           <artifactId>google-http-client-jackson2</artifactId>
-          <version>1.28.0</version>
+          <version>1.32.1</version>
         </dependency>
         <dependency>
           <groupId>com.google.oauth-client</groupId>
           <artifactId>google-oauth-client</artifactId>
-          <version>1.28.0</version>
+          <version>1.32.1</version>
         </dependency>
         <dependency>
           <groupId>com.google.cloud</groupId>
@@ -1402,9 +1402,9 @@
                 <configuration>
                   <groupId>com.google.api-client</groupId>
                   <artifactId>google-api-client</artifactId>
-                  <version>1.28.0</version>
+                  <version>1.321.0</version>
                   <packaging>jar</packaging>
-                  <file>${bigquery.classpath}/google-api-client-1.28.0.jar</file>
+                  <file>${bigquery.classpath}/google-api-client-1.32.1.jar</file>
                 </configuration>
               </execution>
               <execution>
@@ -1444,9 +1444,9 @@
                 <configuration>
                   <groupId>com.google.http-client</groupId>
                   <artifactId>google-http-client</artifactId>
-                  <version>1.28.0</version>
+                  <version>1.32.1</version>
                   <packaging>jar</packaging>
-                  <file>${bigquery.classpath}/google-http-client-1.28.0.jar</file>
+                  <file>${bigquery.classpath}/google-http-client-1.32.1.jar</file>
                 </configuration>
               </execution>
               <execution>
@@ -1458,9 +1458,9 @@
                 <configuration>
                   <groupId>com.google.http-client</groupId>
                   <artifactId>google-http-client-jackson2</artifactId>
-                  <version>1.28.0</version>
+                  <version>1.32.1</version>
                   <packaging>jar</packaging>
-                  <file>${bigquery.classpath}/google-http-client-jackson2-1.28.0.jar</file>
+                  <file>${bigquery.classpath}/google-http-client-jackson2-1.32.1.jar</file>
                 </configuration>
               </execution>
               <execution>
@@ -1472,9 +1472,9 @@
                 <configuration>
                   <groupId>com.google.oauth-client</groupId>
                   <artifactId>google-oauth-client</artifactId>
-                  <version>1.28.0</version>
+                  <version>1.32.1</version>
                   <packaging>jar</packaging>
-                  <file>${bigquery.classpath}/google-oauth-client-1.28.0.jar</file>
+                  <file>${bigquery.classpath}/google-oauth-client-1.32.1.jar</file>
                 </configuration>
               </execution>
               <execution>
