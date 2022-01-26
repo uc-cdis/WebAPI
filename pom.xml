@@ -1438,7 +1438,7 @@
                 <configuration>
                   <groupId>com.google.api-client</groupId>
                   <artifactId>google-api-client</artifactId>
-                  <version>1.321.0</version>
+                  <version>1.32.1</version>
                   <packaging>jar</packaging>
                   <file>${bigquery.classpath}/google-api-client-1.32.1.jar</file>
                 </configuration>
@@ -1562,6 +1562,7 @@
             </exclusion>
             <exclusion>
               <groupId>org.apache.logging.log4j</groupId>
+              <artifactId>*</artifactId>
             </exclusion>
             <exclusion>
               <artifactId>servlet-api</artifactId>
