@@ -29,7 +29,7 @@ RUN mvn package \
     && rm WebAPI.war
 
 # OHDSI WebAPI and ATLAS web application running as a Spring Boot application with Java 11
-FROM quay.io/cdis/openjdk:11-jre-slim
+FROM quay.io/cdis/openjdk:14-slim
 
 MAINTAINER Lee Evans - www.ltscomputingllc.com
 
