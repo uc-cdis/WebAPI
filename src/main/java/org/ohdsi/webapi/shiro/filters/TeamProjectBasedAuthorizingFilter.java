@@ -1,5 +1,6 @@
 package org.ohdsi.webapi.shiro.filters;
 
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -50,30 +51,12 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
 
     try {
         logger.debug("preHandle in TeamProjectBasedAuthorizingFilter == '{}'", this.authorizationMode);
-        String teamProjectRole = null;
-        Set<String> newUserRoles = new HashSet<String>();
-        Set<String> newDefaultRoles = new HashSet<String>(defaultRoles);
         if (this.authorizationMode.equals("teamproject") && SecurityUtils.getSubject().isAuthenticated()) {
           // in case of "teamproject" mode, we want all roles to be reset always, and
           // set to only the one requested/found in the request parameters (following lines below):
           String login = this.authorizer.getCurrentUser().getLogin();
-          // check if a teamproject parameter is found in the request:
-          teamProjectRole = extractTeamProjectFromRequestParameters(request);
-          // if found, add teamproject as a role in the newUserRoles list:
-          if (teamProjectRole != null) {
-            // double check if this role has really been granted to the user:
-            if (checkGen3Authorization(teamProjectRole, login) == false) {
-              WebUtils.toHttp(response).sendError(HttpServletResponse.SC_FORBIDDEN,
-               "User is not authorized to access this team project's data");
-              return false;
-            }
-            // add teamproject role and related system role that
-            // enables read restrictions/permissions based read access configurations:
-            newDefaultRoles.add("read restricted Atlas Users"); // system role 15
-            newUserRoles.add(teamProjectRole);
-            this.authorizer.setCurrentTeamProjectRoleForCurrentUser(teamProjectRole, login);
-            this.authorizer.updateUser(login, newDefaultRoles, newUserRoles, true);
-          } else {
+          boolean foundTeamProject = extractAndValidateTeamProjectRoleAndUpdateUserIfNecessary(this, login, request, response);
+          if (!foundTeamProject) {
             throw new Exception("The teamproject is compulsory when on authorizationMode==teamproject configuration");
           }
         }
@@ -85,6 +68,60 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
 
     return true;
   }
+
+  /**
+   * Tries to extract "team project" role found in the request.
+   * If necessary, assigns the newly found "team project" role to the user,
+   * after validating with a Gen3 authorization service if the user
+   * has been granted access to this team.
+   * 
+   * @param self: reference to "this". Just a workaround to allow the method to be
+   * globally synchronized by making it static.
+   * @param login: the user login
+   * @param request: the request passing through this filter
+   * @param response: response object that can be used to write error status and
+   * error message if needed.
+   * 
+   * @return: Returns true if the "team project" was found and passed validation
+   * and DB update to user roles did not fail.
+   * 
+   * @throws IOException
+   * @throws Exception
+   */
+  private static boolean extractAndValidateTeamProjectRoleAndUpdateUserIfNecessary(
+      TeamProjectBasedAuthorizingFilter self,
+      String login, ServletRequest request,
+      ServletResponse response)  throws IOException, Exception {
+
+    // synchronize on login to avoid race conditions (especially on DB updates) if
+    // this filter receives parallel requests for any reason:
+    synchronized (login.intern()) {
+      // check if a teamproject parameter is found in the request:
+      String teamProjectRole = self.extractTeamProjectFromRequestParameters(request);
+      Set<String> newUserRoles = new HashSet<String>();
+      Set<String> newDefaultRoles = new HashSet<String>(self.defaultRoles);
+
+      // if found, add teamproject as a role in the newUserRoles list:
+      if (teamProjectRole != null) {
+        // double check if this role has really been granted to the user:
+        if (self.checkGen3Authorization(teamProjectRole, login) == false) {
+          WebUtils.toHttp(response).sendError(HttpServletResponse.SC_FORBIDDEN,
+          "User is not authorized to access this team project's data");
+          return false;
+        }
+        // add teamproject role and related system role that
+        // enables read restrictions/permissions based read access configurations:
+        newDefaultRoles.add("read restricted Atlas Users"); // aka reserved system role 15 - TODO: since this is always added...maybe it should be one of the default roles instead...
+        newUserRoles.add(teamProjectRole);
+        self.authorizer.setCurrentTeamProjectRoleForCurrentUser(teamProjectRole, login);
+        self.authorizer.updateUser(login, newDefaultRoles, newUserRoles, true);
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
 
   private boolean checkGen3Authorization(String teamProjectRole, String login) throws Exception {
     logger.debug("Checking Gen3 Authorization for 'team project'={} and user={} using service={}", teamProjectRole, login, this.authorizationUrl);
