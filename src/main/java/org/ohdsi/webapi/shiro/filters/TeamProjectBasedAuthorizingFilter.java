@@ -16,6 +16,7 @@ import org.apache.shiro.web.util.WebUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.ohdsi.webapi.shiro.PermissionManager;
+import org.ohdsi.webapi.shiro.Entities.RoleEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestTemplate;
@@ -102,7 +103,7 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
       Set<String> newDefaultRoles = new HashSet<String>(self.defaultRoles);
 
       // if found, add teamproject as a role in the newUserRoles list:
-      if (teamProjectRole != null || !teamProjectRole.isEmpty()) {
+      if (teamProjectRole != null && !teamProjectRole.trim().isEmpty()) {
         // double check if this role has really been granted to the user:
         if (self.checkGen3Authorization(teamProjectRole, login) == false) {
           WebUtils.toHttp(response).sendError(HttpServletResponse.SC_FORBIDDEN,
@@ -166,12 +167,24 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
     }
   }
 
-  private String extractTeamProjectFromRequestParameters(ServletRequest request) {
+  /**
+   * Tries to find the team project information in the given request or as part of the
+   * stored this.authorizer.getCurrentTeamProjectRoleForCurrentUser(). Returns null
+   * if nothing can be found.
+   */
+  private String extractTeamProjectFromRequestParameters(ServletRequest request) throws Exception {
     // Get the url
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     String url = httpRequest.getRequestURL().toString();
 
-    String currentTeamProjectName = this.authorizer.getCurrentTeamProjectRoleForCurrentUser() != null ? this.authorizer.getCurrentTeamProjectRoleForCurrentUser().getName() : "";
+    RoleEntity currentTeamProjectRole = this.authorizer.getCurrentTeamProjectRoleForCurrentUser();
+    String currentTeamProjectName = null; 
+    if (currentTeamProjectRole != null) {
+      currentTeamProjectName = this.authorizer.getCurrentTeamProjectRoleForCurrentUser().getName();
+      if (currentTeamProjectName == null || currentTeamProjectName.trim().isEmpty()) {
+        throw new Exception("The teamproject role was found but name was unexpectedly empty");
+      }
+    }
     logger.debug("Current teamproject: {}...", currentTeamProjectName);
     logger.debug("Checking if a teamproject has been specified in the request...");
 
