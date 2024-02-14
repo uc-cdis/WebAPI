@@ -102,7 +102,7 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
       Set<String> newDefaultRoles = new HashSet<String>(self.defaultRoles);
 
       // if found, add teamproject as a role in the newUserRoles list:
-      if (teamProjectRole != null) {
+      if (teamProjectRole != null || !teamProjectRole.isEmpty()) {
         // double check if this role has really been granted to the user:
         if (self.checkGen3Authorization(teamProjectRole, login) == false) {
           WebUtils.toHttp(response).sendError(HttpServletResponse.SC_FORBIDDEN,
