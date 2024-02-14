@@ -64,6 +64,9 @@ public class PermissionService {
     @Value("#{!'${security.provider}'.equals('DisabledSecurity')}")
     private boolean securityEnabled;
 
+    @Value("${security.ohdsi.custom.authorization.mode}")
+    private String authorizationMode;
+
     private ThreadLocal<ConcurrentHashMap<EntityType, ConcurrentHashMap<String, Set<RoleDTO>>>> permissionCache =
             ThreadLocal.withInitial(ConcurrentHashMap::new);
 
@@ -285,9 +288,11 @@ public class PermissionService {
             try {
                 String login = this.permissionManager.getSubjectName();
                 UserSimpleAuthorizationInfo authorizationInfo = this.permissionManager.getAuthorizationInfo(login);
-                // if (Objects.equals(authorizationInfo.getUserId(), entity.getCreatedBy().getId())){
-                //     hasAccess = true; // the role is the one that created the artifact - Is this for backwards compatibiliy mode? Should we write a migration instead?
-		        // } else {
+                logger.debug("AUTHORIZATION_MODE in PermissionService == '{}'", this.authorizationMode);
+                if (!this.authorizationMode.equals("teamproject") &&
+                    Objects.equals(authorizationInfo.getUserId(), entity.getCreatedBy().getId())){
+                    hasAccess = true; // the role is the one that created the artifact
+                } else {
                     EntityType entityType = entityPermissionSchemaResolver.getEntityType(entity.getClass());
 
                     List<RoleDTO> roles = getRolesHavingReadPermissions(entityType, entity.getId());
@@ -296,7 +301,7 @@ public class PermissionService {
                     hasAccess = roles.stream()
                             .anyMatch(r -> userRoles.stream()
                                     .anyMatch(re -> re.equals(r.getName())));
-                // }
+                }
             } catch (Exception e) {
                 logger.error("Error getting user roles and permissions", e);
                 throw new RuntimeException(e);
