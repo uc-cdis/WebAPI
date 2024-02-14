@@ -56,9 +56,9 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
           // in case of "teamproject" mode, we want all roles to be reset always, and
           // set to only the one requested/found in the request parameters (following lines below):
           String login = this.authorizer.getCurrentUser().getLogin();
-          boolean foundTeamProject = extractAndValidateTeamProjectRoleAndUpdateUserIfNecessary(this, login, request, response);
-          if (!foundTeamProject) {
-            throw new Exception("The teamproject is compulsory when on authorizationMode==teamproject configuration");
+          boolean foundValidTeamProject = extractAndValidateTeamProjectRoleAndUpdateUserIfNecessary(this, login, request, response);
+          if (!foundValidTeamProject) {
+            return false;
           }
         }
 
@@ -118,6 +118,8 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
         self.authorizer.updateUser(login, newDefaultRoles, newUserRoles, true);
         return true;
       } else {
+        WebUtils.toHttp(response).sendError(HttpServletResponse.SC_FORBIDDEN,
+          "The teamproject is compulsory when on authorizationMode==teamproject configuration");
         return false;
       }
     }
