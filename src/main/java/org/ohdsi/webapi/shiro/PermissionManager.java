@@ -37,8 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.management.relation.Role;
-
 /**
  *
  * @author gennadiy.anisimov
@@ -183,12 +181,6 @@ public class PermissionManager {
   public void updateUser(String login, Set<String> defaultRoles, Set<String> newUserRoles,
       boolean resetRoles) {
         registerUser(login, null, UserOrigin.SYSTEM, defaultRoles, newUserRoles, resetRoles);
-  }
-
-  @Transactional
-  private void registerUser(String login, String name, Set<String> defaultRoles, Set<String> newUserRoles,
-      boolean resetRoles) {
-        registerUser(login, name, UserOrigin.SYSTEM, defaultRoles, newUserRoles, resetRoles);
   }
 
   @Transactional
