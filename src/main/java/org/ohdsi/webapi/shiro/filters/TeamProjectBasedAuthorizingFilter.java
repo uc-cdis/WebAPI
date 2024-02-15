@@ -22,7 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestTemplate;
 
 /**
- *
+ * Filter class to dynamically assign a "team project" role to the
+ * user, after validating with an external authorization service
+ * whether the user has been granted access to this "team project".
+ * 
  * @author Pieter Lukasse
  */
 public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
@@ -106,8 +109,10 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
       if (teamProjectRole != null && !teamProjectRole.trim().isEmpty()) {
         // double check if this role has really been granted to the user:
         if (self.checkGen3Authorization(teamProjectRole, login) == false) {
+          String errorMessage = "User is not authorized to access this team project's data";
+          self.logger.error(errorMessage);
           WebUtils.toHttp(response).sendError(HttpServletResponse.SC_FORBIDDEN,
-          "User is not authorized to access this team project's data");
+            errorMessage);
           return false;
         }
         // add teamproject role and related system role that
@@ -118,8 +123,10 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
         self.authorizer.updateUser(login, newDefaultRoles, newUserRoles, true);
         return true;
       } else {
+        String errorMessage = "The teamproject is compulsory when on authorizationMode==teamproject configuration";
+        self.logger.error(errorMessage);
         WebUtils.toHttp(response).sendError(HttpServletResponse.SC_FORBIDDEN,
-          "The teamproject is compulsory when on authorizationMode==teamproject configuration");
+          errorMessage);
         return false;
       }
     }
