@@ -22,6 +22,7 @@ import org.ohdsi.webapi.shiro.Entities.UserOrigin;
 import org.ohdsi.webapi.shiro.Entities.UserRepository;
 import org.ohdsi.webapi.shiro.Entities.UserRoleEntity;
 import org.ohdsi.webapi.shiro.Entities.UserRoleRepository;
+import org.ohdsi.webapi.util.UserUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -533,6 +534,7 @@ public class PermissionManager {
 
     if (principalObject instanceof Pac4jPrincipal) {
       String login = ((Pac4jPrincipal)principalObject).getProfile().getEmail();
+      login = UserUtils.toLowerCase(login);
       logger.debug("principal IS Pac4jPrincipal: " + login);
       return login;
     }
