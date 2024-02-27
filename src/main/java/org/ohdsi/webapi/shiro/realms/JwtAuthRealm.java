@@ -9,7 +9,6 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.ohdsi.webapi.shiro.PermissionManager;
 import org.ohdsi.webapi.shiro.tokens.JwtAuthToken;
-import org.ohdsi.webapi.util.UserUtils;
 
 import io.buji.pac4j.subject.Pac4jPrincipal;
 
@@ -41,7 +40,6 @@ public class JwtAuthRealm extends AuthorizingRealm {
     else {
       login = (String) principals.getPrimaryPrincipal();
     }
-    login = UserUtils.toLowerCase(login);
     return authorizer.getAuthorizationInfo(login);
   }
 
