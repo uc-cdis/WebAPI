@@ -103,7 +103,6 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
       // check if a teamproject parameter is found in the request:
       String teamProjectRole = self.extractTeamProjectFromRequestParameters(request);
       Set<String> newUserRoles = new HashSet<String>();
-      Set<String> newDefaultRoles = new HashSet<String>(self.defaultRoles);
 
       // if found, add teamproject as a role in the newUserRoles list:
       if (teamProjectRole != null && !teamProjectRole.trim().isEmpty()) {
@@ -115,12 +114,10 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
             errorMessage);
           return false;
         }
-        // add teamproject role and related system role that
-        // enables read restrictions/permissions based read access configurations:
-        newDefaultRoles.add("read restricted Atlas Users"); // aka reserved system role 15 - TODO: since this is always added...maybe it should be one of the default roles instead...
+        // add teamproject role:
         newUserRoles.add(teamProjectRole);
         self.authorizer.setCurrentTeamProjectRoleForCurrentUser(teamProjectRole, login);
-        self.authorizer.updateUser(login, newDefaultRoles, newUserRoles, true);
+        self.authorizer.updateUser(login, self.defaultRoles, newUserRoles, true);
         return true;
       } else {
         String errorMessage = "The teamproject is compulsory when on authorizationMode==teamproject configuration";
