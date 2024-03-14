@@ -84,17 +84,17 @@ public abstract class AtlasSecurity extends Security {
   private final Map<FilterTemplates, Filter> filters = new HashMap<>();
 
   public AtlasSecurity(EntityPermissionSchemaResolver permissionSchemaResolver) {
-    this.defaultRoles.add("public");
-    if (this.authorizationMode.equals("teamproject")){
-      // add system role that enables read restrictions/permissions based read access configurations:
-      this.defaultRoles.add("read restricted Atlas Users"); // aka reserved system role 15
-    }
     this.permissionSchemaResolver = permissionSchemaResolver;
     featureAnalysisPermissionTemplates = permissionSchemaResolver.getForType(EntityType.FE_ANALYSIS).getAllPermissions();
   }
 
   @PostConstruct
   private void init() {
+    this.defaultRoles.add("public");
+    if (this.authorizationMode.equals("teamproject")){
+      // add system role that enables read restrictions/permissions based read access configurations:
+      this.defaultRoles.add("read restricted Atlas Users"); // aka reserved system role 15
+    }
     fillFilters();
   }
 
