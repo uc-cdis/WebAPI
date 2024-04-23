@@ -20,7 +20,7 @@
     <hibernate.version>5.4.24.Final</hibernate.version>
     <postgresql.version>42.3.9</postgresql.version>
     <bouncycastle.version>1.69</bouncycastle.version>
-    <shiro.version>1.12.0</shiro.version>
+    <shiro.version>1.13.0</shiro.version>
     <dom4j.version>2.1.3</dom4j.version>
     <hydra.version>0.4.0</hydra.version>
     <featureExtraction.version>3.2.0</featureExtraction.version>
@@ -597,7 +597,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>
-        <artifactId>activemq-brokeer</artifactId>
+        <artifactId>activemq-broker</artifactId>
         <version>5.15.16</version>
       </dependency>
       <dependency>
@@ -616,6 +616,11 @@
         <version>1.26.1</version>
       </dependency>
       <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.13</version>
+      </dependency>
+      <dependency>
         <groupId>org.codehaus.jettison</groupId>
         <artifactId>jettison</artifactId>
         <version>1.5.4</version>
@@ -626,9 +631,24 @@
         <version>1.75</version>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>2.12.7.1</version>
+        <groupId>io.springfox</groupId>
+        <artifactId>springfox-swagger-ui</artifactId>
+        <version>2.10.5</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tika</groupId>
+        <artifactId>tika-core</artifactId>
+        <version>1.22</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.santuario</groupId>
+        <artifactId>xmlsec</artifactId>
+        <version>2.1.7</version>
+      </dependency>
+      <dependency>
+        <groupId>net.lingala.zip4j</groupId>
+        <artifactId>zip4j</artifactId>
+        <version>2.11.3</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -636,7 +656,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
+      <version>2.12.7.1</version>
       <exclusions>
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
@@ -719,7 +739,7 @@
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
-      <version>1.4.19</version>
+      <version>1.4.20</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
