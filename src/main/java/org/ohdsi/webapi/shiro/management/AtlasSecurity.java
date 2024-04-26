@@ -78,6 +78,7 @@ public abstract class AtlasSecurity extends Security {
 
   private final EntityPermissionSchemaResolver permissionSchemaResolver;
 
+  @Value("${security.defaultRoles}#{T(java.util.Collections).emptyList()}")
   protected final Set<String> defaultRoles = new LinkedHashSet<>();
 
   private final Map<String, String> featureAnalysisPermissionTemplates;
@@ -90,11 +91,11 @@ public abstract class AtlasSecurity extends Security {
 
   @PostConstruct
   private void init() {
-    this.defaultRoles.add("public");
-    if (this.authorizationMode.equals("teamproject")){
-      // add system role that enables read restrictions/permissions based read access configurations:
-      this.defaultRoles.add("read restricted Atlas Users"); // aka reserved system role 15
-    }
+    // this.defaultRoles.add("public");
+    // if (this.authorizationMode.equals("teamproject")){
+    //   // add system role that enables read restrictions/permissions based read access configurations:
+    //   this.defaultRoles.add("read restricted Atlas Users"); // aka reserved system role 15
+    // }
     fillFilters();
   }
 

@@ -33,7 +33,7 @@ public class UserService {
   @Autowired
   private ApplicationEventPublisher eventPublisher;
 
-  @Value("${security.ad.default.import.group}#{T(java.util.Collections).emptyList()}")
+  @Value("${security.defaultRoles}#{T(java.util.Collections).emptyList()}")
   private List<String> defaultRoles;
 
   private Map<String, String> roleCreatorPermissionsTemplate = new LinkedHashMap<>();
