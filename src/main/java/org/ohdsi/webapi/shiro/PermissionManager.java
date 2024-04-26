@@ -451,6 +451,7 @@ public class PermissionManager {
 
   private UserEntity getUserByLogin(final String login) {
     logger.debug("Looking for user login={}...", login);
+    logger.debug("List all users: {}", this.userRepository.getUserLogins().toString());
     final UserEntity user = this.userRepository.findByLogin(login);
     if (user == null) {
       logger.error("User does NOT exist for login={}...", login);
