@@ -80,6 +80,7 @@
 
     <security.ohdsi.custom.authorization.mode>teamproject</security.ohdsi.custom.authorization.mode>
     <security.ohdsi.custom.authorization.url>http://arborist-service/auth/mapping</security.ohdsi.custom.authorization.url>
+    <security.defaultRoles>public</security.defaultRoles>
     <security.provider>DisabledSecurity</security.provider>
     <security.token.expiration>43200</security.token.expiration>
     <security.origin>http://localhost</security.origin>
