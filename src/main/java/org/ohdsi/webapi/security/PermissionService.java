@@ -129,8 +129,24 @@ public class PermissionService {
             .getReturnType();
         CommonEntity entity = (CommonEntity) entityRepository.getOne((Serializable) conversionService.convert(entityId, idClazz));
 
-        if (!isCurrentUserOwnerOf(entity)) {
-            throw new UnauthorizedException();
+        if (this.authorizationMode.equals("teamproject")) {
+            String login = this.permissionManager.getSubjectName();
+            UserSimpleAuthorizationInfo authorizationInfo = this.permissionManager.getAuthorizationInfo(login);
+            // in teamproject mode, it is sufficient if the user has write permission to this entity,
+            // as entity ownership and maintenance is a shared responsibility within a team:
+            List<RoleDTO> roles = getRolesHavingWritePermissions(entityType, entity.getId());
+            Collection<String> userRoles = authorizationInfo.getRoles();
+            boolean hasAccess = roles.stream()
+                    .anyMatch(r -> userRoles.stream()
+                            .anyMatch(re -> re.equals(r.getName())));
+            if (!hasAccess) {
+                throw new UnauthorizedException();
+            }
+        } else {
+            // default validation: current **user** should be owner:
+            if (!isCurrentUserOwnerOf(entity)) {
+                throw new UnauthorizedException();
+            }
         }
     }
 
@@ -213,7 +229,7 @@ public class PermissionService {
         }
     }
 
-    public List<RoleDTO> getRolesHavingPermissions(EntityType entityType, Number id) {
+    public List<RoleDTO> getRolesHavingWritePermissions(EntityType entityType, Number id) {
         Set<String> permissionTemplates = getTemplatesForType(entityType, AccessType.WRITE).keySet();
         preparePermissionCache(entityType, permissionTemplates);
 
@@ -266,7 +282,7 @@ public class PermissionService {
                 } else {
                     EntityType entityType = entityPermissionSchemaResolver.getEntityType(entity.getClass());
 
-                    List<RoleDTO> roles = getRolesHavingPermissions(entityType, entity.getId());
+                    List<RoleDTO> roles = getRolesHavingWritePermissions(entityType, entity.getId());
 
                     Collection<String> userRoles = authorizationInfo.getRoles();
                     hasAccess = roles.stream()
