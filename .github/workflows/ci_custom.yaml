@@ -1,0 +1,38 @@
+# Continuous integration
+name: CI CTDS
+
+# Run customized version of CI in our local fork's main (default) branch and pull requests to
+# this branch (note: this ci_custom.yaml file is a simplified version of the ci.yaml file in this same directory)
+on:
+  push:
+    branches: [ 2.15.0-DEV ]
+  pull_request:
+    branches: [ 2.15.0-DEV ]
+
+jobs:
+  # Build and test the code
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      MAVEN_PROFILE: webapi-postgresql
+
+    steps:
+      # Checks-out repository under $GITHUB_WORKSPACE, so the job can access it
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v1
+        with:
+            java-version: 8
+
+      - name: Maven cache
+        uses: actions/cache@v2
+        with:
+            path: ~/.m2
+            # Key for restoring and saving the cache
+            key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
+            restore-keys: |
+              ${{ runner.os }}-maven-
+
+      - name: Test
+        run: mvn -B -P${{ env.MAVEN_PROFILE }} test
