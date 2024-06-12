@@ -4,6 +4,7 @@ import com.odysseusinc.arachne.commons.types.DBMSType;
 import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.KerberosAuthMechanism;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import org.springframework.transaction.annotation.Transactional;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -170,6 +171,7 @@ public class GenerationCacheTest extends AbstractDatabaseTest {
     }
 
     @Test
+    @Transactional
     public void checkCachingWithEmptyResultSet() {
 
         CacheableGenerationType type = CacheableGenerationType.COHORT;
