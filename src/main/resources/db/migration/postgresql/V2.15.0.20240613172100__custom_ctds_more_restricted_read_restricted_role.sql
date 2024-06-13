@@ -36,12 +36,31 @@ with vocab_source as (
 		(':search:post')
 	) t3 (r)
  ) combined
+),
+ source_perms as (
+ select distinct concat(ls,ms,rs) perm
+ from (
+ select *
+ from (values 
+		('source:')
+	) t11 (ls)
+ cross join 
+	( select source_key 
+	  from vocab_source
+	) t22 (ms)
+ cross join 
+	(values
+		(':access')
+	) t33 (rs)
+ ) combined
 )
 SELECT DISTINCT 15 role_id, permission_id
     FROM ${ohdsiSchema}.sec_role_permission srp  
        INNER JOIN ${ohdsiSchema}.sec_permission sp ON srp.permission_id = sp.id      
     WHERE 
        sp.value IN (select perm from vocab_perms) 
+	   or
+	   sp.value IN (select perm from source_perms)
        or
        sp.value IN 
           (
