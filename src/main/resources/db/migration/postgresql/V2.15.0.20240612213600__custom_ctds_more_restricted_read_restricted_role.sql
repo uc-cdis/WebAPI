@@ -7,12 +7,16 @@ with vocab_source as (
    inner join ${ohdsiSchema}.source_daimon sd on s.source_id = sd.source_id 
  where sd.daimon_type = 1
 ), vocab_perms as (
- select distinct concat(l,m) perm
+ select distinct concat(l,m,r) perm
  from (
  select *
  from (values 
-		('vocabulary:*')
+		('vocabulary:')
 	) t1 (l)
+ cross join 
+	( select source_key 
+	  from vocab_source
+	) t2 (m)
  cross join 
 	(values
 		(':*:get'),
@@ -30,7 +34,7 @@ with vocab_source as (
 		(':resolveConceptSetExpression:post'),
 		(':search:*:get'),
 		(':search:post')
-	) t2 (m)
+	) t3 (r)
  ) combined
 )
 SELECT DISTINCT 15 role_id, permission_id
