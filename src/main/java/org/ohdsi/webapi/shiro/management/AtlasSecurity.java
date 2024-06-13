@@ -95,7 +95,7 @@ public abstract class AtlasSecurity extends Security {
       // add system role that enables read restrictions/permissions based read access configurations:
       this.defaultRoles.add("read restricted Atlas Users"); // aka reserved system role 15
       // temporary solution to simplify onboarding: also add the "Source user (omop)" role to the list of defaultRoles for each user:
-      this.defaultRoles.add("Source user (omop)"); // TODO - replace with final solution from https://ctds-planx.atlassian.net/browse/VADC-1086
+      //this.defaultRoles.add("Source user (omop)"); // TODO - replace with final solution from https://ctds-planx.atlassian.net/browse/VADC-1086
     }
     fillFilters();
   }
