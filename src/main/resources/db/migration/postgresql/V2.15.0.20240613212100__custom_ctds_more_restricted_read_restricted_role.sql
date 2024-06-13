@@ -1,3 +1,5 @@
+-- todo remove the role "source user" from all users or transform that role in non-system 
+
 delete from ${ohdsiSchema}.sec_role_permission where role_id = 15;
 
 INSERT INTO ${ohdsiSchema}.sec_role_permission (role_id, permission_id)
