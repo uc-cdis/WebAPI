@@ -20,8 +20,7 @@ public class CohortDefinitionPermissionSchema extends EntityPermissionSchema {
 
 	put("cohortdefinition:%s:version:get", "Get list of cohort versions");
 	put("cohortdefinition:%s:version:*:get", "Get cohort version");		       
-  put("cohortdefinition:%s:copy:get", "Copy the specified cohort definition");
-}
+      }
     };
   
     public CohortDefinitionPermissionSchema() {
