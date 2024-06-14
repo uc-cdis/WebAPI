@@ -142,18 +142,32 @@ SELECT DISTINCT 15 role_id, permission_id
 --                     9 | /gwas_projects/project2
 --                   300 | /gwas_projects/project1
 
+DROP VIEW IF EXISTS ${ohdsiSchema}.COHORT_DEFINITION_SEC_ROLE;
+CREATE VIEW ${ohdsiSchema}.COHORT_DEFINITION_SEC_ROLE AS
+  select
+    distinct cast(regexp_replace(sec_permission.value,
+         '^cohortdefinition:([0-9]+):.*','\1') as integer) as cohort_definition_id,
+    sec_role.name as sec_role_name
+  from
+    ${ohdsiSchema}.sec_role
+    inner join ${ohdsiSchema}.sec_role_permission on sec_role.id = sec_role_permission.role_id
+    inner join ${ohdsiSchema}.sec_permission on sec_role_permission.permission_id = sec_permission.id
+  where
+    sec_permission.value ~ 'cohortdefinition:[0-9]+'
+;
+
 -- Below we create new "copy:get" permissions specific to each cohort definition (step 1), and
 -- then tie these new permissions to the right role, according to the cohort definition id vs role name
 -- mapping found in COHORT_DEFINITION_SEC_ROLE (step 2).
 
-SELECT setval(concat(${ohdsiSchema}, '.sec_permission_sequence'), (select max(id)+1 from ${ohdsiSchema}.sec_permission), false);
+SELECT setval('${ohdsiSchema}.sec_permission_sequence', (select max(id)+1 from ${ohdsiSchema}.sec_permission), false);
 
 -- 1. create the sec_permission records:
 INSERT INTO ${ohdsiSchema}.sec_permission (value, description)
 select 
  concat('cohortdefinition:', cohort_definition_id, ':copy:get'),
  'Copy the specified cohort definition'
-from ${ohdsiSchema}.COHORT_DEFINITION_SEC_ROLE;
+from ${ohdsiSchema}.COHORT_DEFINITION_SEC_ROLE
 ON CONFLICT (value)
 DO NOTHING;
 
