@@ -128,6 +128,7 @@ SELECT DISTINCT 15 role_id, permission_id
 		'tag:multiAssign:post',
 		'tag:multiUnassign:post',
 		'tag:post',
-		'tag:search:get'
+		'tag:search:get',
+		'cohortdefinition:*:exists:get' -- weird one...but is needed / used by ui before saving a new cohort....
        )
 ;
