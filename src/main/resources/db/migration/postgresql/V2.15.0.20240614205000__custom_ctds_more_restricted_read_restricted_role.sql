@@ -129,7 +129,42 @@ SELECT DISTINCT 15 role_id, permission_id
 		'tag:multiUnassign:post',
 		'tag:post',
 		'tag:search:get',
-		'cohortdefinition:*:exists:get', -- weird one...but is needed / used by ui before saving a new cohort....
-		'cohortdefinition:*:copy:get' -- another weird one...but is needed / used by ui for copying a new cohort....
+		'cohortdefinition:*:exists:get' -- weird one...but is needed / used by ui before saving a new cohort....
        )
 ;
+
+
+-- COHORT_DEFINITION_SEC_ROLE is our custom view that returns a list of cohort definition ids per role
+-- as long as that role has a permission starting with "cohortdefinition:"" for that id. E.g. :
+--  cohort_definition_id |      sec_role_name      
+-- ----------------------+-------------------------
+--                     8 | /gwas_projects/project2
+--                     9 | /gwas_projects/project2
+--                   300 | /gwas_projects/project1
+
+-- Below we create new "copy:get" permissions specific to each cohort definition (step 1), and
+-- then tie these new permissions to the right role, according to the cohort definition id vs role name
+-- mapping found in COHORT_DEFINITION_SEC_ROLE (step 2).
+
+SELECT setval(concat(${ohdsiSchema}, '.sec_permission_sequence'), (select max(id)+1 from ${ohdsiSchema}.sec_permission), false);
+
+-- 1. create the sec_permission records:
+INSERT INTO ${ohdsiSchema}.sec_permission (value, description)
+select 
+ concat('cohortdefinition:', cohort_definition_id, ':copy:get'),
+ 'Copy the specified cohort definition'
+from ${ohdsiSchema}.COHORT_DEFINITION_SEC_ROLE;
+ON CONFLICT (value)
+DO NOTHING;
+
+-- 2. insert sec_role_permissions:
+INSERT INTO ${ohdsiSchema}.sec_role_permission (role_id, permission_id)
+Select 
+ sec_role.id,
+ sec_permission.id
+from
+ ${ohdsiSchema}.COHORT_DEFINITION_SEC_ROLE 
+ join ${ohdsiSchema}.sec_role on COHORT_DEFINITION_SEC_ROLE.sec_role_name = sec_role.name
+ join ${ohdsiSchema}.sec_permission on concat('cohortdefinition:', COHORT_DEFINITION_SEC_ROLE.cohort_definition_id, ':copy:get') = sec_permission.value
+ON CONFLICT (role_id, permission_id)
+DO NOTHING;
