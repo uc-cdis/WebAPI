@@ -55,6 +55,23 @@ with vocab_source as (
 		(':access')
 	) t33 (rs)
  ) combined
+),
+ generate_perms as (
+ select distinct concat(lg,mg,rg) perm
+ from (
+ select *
+ from (values 
+		('cohortdefinition:*:generate:')
+	) t111 (lg)
+ cross join 
+	( select source_key 
+	  from vocab_source
+	) t222 (mg)
+ cross join 
+	(values
+		(':get')
+	) t333 (rg)
+ ) combined
 )
 SELECT DISTINCT 15 role_id, permission_id
     FROM ${ohdsiSchema}.sec_role_permission srp  
@@ -63,6 +80,8 @@ SELECT DISTINCT 15 role_id, permission_id
        sp.value IN (select perm from vocab_perms) 
 	   or
 	   sp.value IN (select perm from source_perms)
+       or
+	   sp.value IN (select perm from generate_perms)
        or
        sp.value IN 
           (
