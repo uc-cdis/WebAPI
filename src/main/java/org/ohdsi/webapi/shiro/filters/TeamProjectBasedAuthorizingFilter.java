@@ -145,31 +145,29 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
     } else {
       JSONArray teamProjectAuthorizations = jsonObject.getJSONArray(teamProjectRole);
       logger.debug("Found authorizations={}", teamProjectAuthorizations);
-      // We expect only one authorization rule per teamproject:
-      if (teamProjectAuthorizations.length() != 1) {
-        logger.error("Only one authorization rule expected for 'teamproject'={}, found={}", teamProjectRole,
+      // We expect two authorization rules per teamproject:
+      if (teamProjectAuthorizations.length() != 2) {
+        logger.error("Two authorization rules expected for 'teamproject'={}, found={}", teamProjectRole,
           teamProjectAuthorizations.length());
         return false;
       }
-      JSONObject teamProjectAuthorization = teamProjectAuthorizations.getJSONObject(0);
-
-      // check if the authorization contains the right "service" and "method" values:
       String expectedMethod = "access";
       String expectedService = "atlas-argo-wrapper-and-cohort-middleware"; // TODO - make the service name configurable?
-      String service = teamProjectAuthorization.getString("service");
-      String method = teamProjectAuthorization.getString("method");
-      logger.debug("Parsed service={} and method={}", service, method);
-      if (!method.equalsIgnoreCase(expectedMethod)) {
-        logger.error("The 'teamproject' authorization method should be '{}', but found '{}'", expectedMethod, method);
-        return false;
+      for(int i = 0; i < teamProjectAuthorizations.length(); i++) {
+        JSONObject teamProjectAuthorization = teamProjectAuthorizations.getJSONObject(i);
+        // check if the authorization contains the right "service" and "method" values:
+        String service = teamProjectAuthorization.getString("service");
+        String method = teamProjectAuthorization.getString("method");
+        logger.debug("Parsed service={} and method={}", service, method);
+        if (method.equalsIgnoreCase(expectedMethod) && service.equalsIgnoreCase(expectedService)) {
+          logger.debug("Parsed method is as expected");
+          logger.debug("Parsed service is as expected");
+          return true;
+        }
       }
-      logger.debug("Parsed method is as expected");
-      if (!service.equalsIgnoreCase(expectedService)) {
-        logger.error("The 'teamproject' authorization service should be '{}', but found '{}'", expectedService, service);
-        return false;
-      }
-      logger.debug("Parsed service is as expected");
-      return true;
+      logger.error("The 'teamproject' authorization method should be '{}', but was not found", expectedMethod);
+      logger.error("The 'teamproject' authorization service should be '{}', but was not found", expectedService);
+      return false;
     }
   }
 
