@@ -151,7 +151,8 @@ SELECT DISTINCT 15 role_id, permission_id
 		'cohortdefinition:*:exists:get', -- weird one...but is needed / used by UI before saving a new cohortdefinition....
 		'conceptset:*:exists:get', -- weird one...but is needed / used by UI before saving a new conceptset....
 		'conceptset:*:expression:*:get', -- TODO - taken over from role 10...This one is probably too broad and will need further fixes.
-		'conceptset:*:version:get' -- TODO - taken over from role 10...This one is probably too broad and will need further fixes.
+		'conceptset:*:version:get', -- TODO - taken over from role 10...This one is probably too broad and will need further fixes.
+		'conceptset:*:copy-name:get' -- TODO - taken over from role 10...This one is probably too broad and will need further fixes.
        )
 ;
 
