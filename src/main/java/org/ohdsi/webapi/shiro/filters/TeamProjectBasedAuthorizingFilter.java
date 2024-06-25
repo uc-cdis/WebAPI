@@ -198,7 +198,7 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
     if (redirectUrlParams != null) {
       logger.debug("Parameter redirectUrl found. Checking if it contains teamproject....");
       // teamProject will be in first one in this case...as only parameter:
-      String firstParameter = redirectUrlParams[0].toLowerCase();
+      String firstParameter = redirectUrlParams[0];
       if (firstParameter.contains("teamproject=")) {
         String teamProject = firstParameter.split("teamproject=")[1];
         logger.debug("Found teamproject: {}", teamProject);
@@ -211,7 +211,7 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
     String[] teamProjectParams = getParameterValues(request, "teamproject");
     if (teamProjectParams != null) {
       logger.debug("Parameter teamproject found. Parsing....");
-      String teamProject = teamProjectParams[0].toLowerCase();
+      String teamProject = teamProjectParams[0];
       logger.debug("Found teamproject: {}", teamProject);
       return teamProject;
     }
