@@ -70,6 +70,6 @@ RUN update-ca-trust
 
 
 # Directly run the code as a WAR.
-CMD exec java ${DEFAULT_JAVA_OPTS} ${JAVA_OPTS} \
-    -cp ".:WebAPI.jar:WEB-INF/lib/*.jar${CLASSPATH}" \
-    org.springframework.boot.loader.WarLauncher
+CMD ["java", "${DEFAULT_JAVA_OPTS}", "${JAVA_OPTS}", \
+    "-cp", ".:WebAPI.jar:WEB-INF/lib/*.jar${CLASSPATH}", \
+    "org.springframework.boot.loader.WarLauncher"]
