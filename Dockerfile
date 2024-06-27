@@ -1,4 +1,4 @@
-FROM quay.io/cdis/maven:3.6-jdk-11 as builder
+FROM quay.io/cdis/maven:3.6-jdk-11 AS builder
 
 WORKDIR /code
 
@@ -30,7 +30,7 @@ RUN mvn package ${MAVEN_PARAMS} \
     && rm WebAPI.war
 
 # OHDSI WebAPI and ATLAS web application running as a Spring Boot application with Java 8
-FROM amazoncorretto:8u402-al2023
+FROM amazoncorretto:8u412-al2023
 
 # Any Java options to pass along, e.g. memory, garbage collection, etc.
 ENV JAVA_OPTS=""
