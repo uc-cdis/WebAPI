@@ -5,6 +5,7 @@ import java.util.Set;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.ohdsi.webapi.shiro.AtlasWebSecurityManager;
 import org.ohdsi.webapi.shiro.lockout.*;
 import org.ohdsi.webapi.shiro.management.DataSourceAccessBeanPostProcessor;
@@ -13,6 +14,8 @@ import org.ohdsi.webapi.shiro.management.Security;
 import org.ohdsi.webapi.shiro.management.datasource.DataSourceAccessParameterResolver;
 import org.ohdsi.webapi.shiro.realms.JwtAuthRealm;
 import org.ohdsi.webapi.shiro.subject.WebDelegatingRunAsSubjectFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -44,6 +47,9 @@ public class ShiroConfiguration {
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
 
+    private final Logger logger = LoggerFactory.getLogger(ShiroConfiguration.class);
+
+
     @Bean
     public ShiroFilterFactoryBean shiroFilter(Security security, LockoutPolicy lockoutPolicy) {
 
@@ -70,6 +76,13 @@ public class ShiroConfiguration {
                 realmsForAuthentication,
                 realmsForAuthorization
         );
+
+        // Configure session manager to set the session timeout
+        long globalSessionTimeout = 30000; // TODO - read from config
+        logger.info(">>>> Setting GlobalSessionTimeout to {}s...", globalSessionTimeout/1000);
+        DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
+        sessionManager.setGlobalSessionTimeout(globalSessionTimeout);
+        securityManager.setSessionManager(sessionManager);
 
         securityManager.setSubjectFactory(new WebDelegatingRunAsSubjectFactory());
 
