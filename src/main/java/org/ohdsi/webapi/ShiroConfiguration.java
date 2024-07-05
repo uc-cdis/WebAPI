@@ -42,6 +42,8 @@ public class ShiroConfiguration {
     private long initialDuration;
     @Value("${security.duration.increment}")
     private long increment;
+    @Value("${security.session.timeout}")
+    private long globalSessionTimeout;
     @Value("${spring.aop.proxy-target-class:false}")
     private Boolean proxyTargetClass;
     @Autowired
@@ -78,8 +80,7 @@ public class ShiroConfiguration {
         );
 
         // Configure session manager to set the session timeout
-        long globalSessionTimeout = 30000; // TODO - read from config
-        logger.info(">>>> Setting GlobalSessionTimeout to {}s...", globalSessionTimeout/1000);
+        logger.info("Setting GlobalSessionTimeout to {}s...", globalSessionTimeout/1000);
         DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
         sessionManager.setGlobalSessionTimeout(globalSessionTimeout);
         securityManager.setSessionManager(sessionManager);
