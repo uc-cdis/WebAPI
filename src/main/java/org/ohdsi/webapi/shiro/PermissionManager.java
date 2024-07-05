@@ -44,6 +44,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.permission.WildcardPermission;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.session.SessionException;
 import org.ohdsi.circe.helper.ResourceHelper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -660,7 +662,12 @@ public class PermissionManager {
 
   private String getCurrentUserSessionId() {
     Subject subject = SecurityUtils.getSubject();
-    return subject.getSession(false).getId().toString();
+    Session currentSession = subject.getSession(false);
+    if (currentSession == null) {
+      logger.error("Current session not found or session expired for {}", this.getSubjectName());
+      throw new SessionException("Current session not found or session expired");
+    }
+    return currentSession.getId().toString();
   }
 
   private AbstractMap.SimpleEntry<String,String> getCurrentUserAndSessionTuple() {
