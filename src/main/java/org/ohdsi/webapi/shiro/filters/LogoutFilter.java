@@ -49,6 +49,7 @@ public class LogoutFilter extends AdviceFilter {
         httpResponse.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
     Subject subject = SecurityUtils.getSubject();
+    subject.getSession(false).stop();
     try {
         subject.logout();
         eventPublisher.publishEvent(new SuccessLogoutEvent(this, principal));
