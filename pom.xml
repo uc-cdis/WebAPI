@@ -158,7 +158,7 @@
     <security.maxLoginAttempts>3</security.maxLoginAttempts>
     <security.duration.initial>10</security.duration.initial>
     <security.duration.increment>10</security.duration.increment>
-    <security.session.timeout>1200000</security.session.timeout>
+    <security.session.timeout>60000</security.session.timeout>
 
     <security.saml.enabled>false</security.saml.enabled>
     <security.saml.entityId></security.saml.entityId>
