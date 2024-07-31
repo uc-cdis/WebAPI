@@ -638,7 +638,7 @@
       <dependency>
         <groupId>org.apache.tika</groupId>
         <artifactId>tika-core</artifactId>
-        <version>1.22</version>
+        <version>1.28.4</version>
       </dependency>
       <dependency>
         <groupId>org.apache.santuario</groupId>
@@ -910,7 +910,7 @@
     <dependency>
       <groupId>com.microsoft.azure</groupId>
       <artifactId>msal4j</artifactId>
-      <version>1.10.0</version>
+      <version>1.15.1</version>
     </dependency>
     <dependency>
       <groupId>com.opencsv</groupId>
