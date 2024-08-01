@@ -83,7 +83,7 @@ public class PermissionManager {
   
   private ThreadLocal<ConcurrentHashMap<String, UserSimpleAuthorizationInfo>> authorizationInfoCache = ThreadLocal.withInitial(ConcurrentHashMap::new);
 
-  private Map<AbstractMap.SimpleEntry<String,String>, String> teamProjectRoles = new HashMap<>();
+  private Map<String, String> teamProjectRoles = new HashMap<>();
 
   public static class PermissionsDTO {
 
@@ -658,25 +658,14 @@ public class PermissionManager {
     return this.roleRepository.existsByName(roleName);
   }
 
-  private String getCurrentUserSessionId() {
-    Subject subject = SecurityUtils.getSubject();
-    return subject.getSession(false).getId().toString();
-  }
-
-  private AbstractMap.SimpleEntry<String,String> getCurrentUserAndSessionTuple() {
-    AbstractMap.SimpleEntry<String, String> userAndSessionTuple = new AbstractMap.SimpleEntry<>
-      (getCurrentUser().getLogin(), getCurrentUserSessionId());
-    return userAndSessionTuple;
-  }
-
   public void setCurrentTeamProjectRoleForCurrentUser(String teamProjectRole, String login) {
     logger.debug("Current user in setCurrentTeamProjectRoleForCurrentUser() {}", login);
-    this.teamProjectRoles.put(getCurrentUserAndSessionTuple(), teamProjectRole);
+    this.teamProjectRoles.put(getCurrentUser().getLogin(), teamProjectRole);
   }
 
   public RoleEntity getCurrentTeamProjectRoleForCurrentUser() {
     logger.debug("Current user in getCurrentTeamProjectRoleForCurrentUser(): {}", getCurrentUser().getLogin());
-    String teamProjectRole = this.teamProjectRoles.get(getCurrentUserAndSessionTuple());
+    String teamProjectRole = this.teamProjectRoles.get(getCurrentUser().getLogin());
     if (teamProjectRole == null) {
       return null;
     } else {
