@@ -205,3 +205,8 @@ from
  join ${ohdsiSchema}.sec_permission on concat('cohortdefinition:', COHORT_DEFINITION_SEC_ROLE.cohort_definition_id, ':copy:get') = sec_permission.value
 ON CONFLICT (role_id, permission_id)
 DO NOTHING;
+
+
+-- CTDS/"team project" feature specific - keep only "admin" role assignment... i.e. remove all other
+-- role assignments for all users:
+DELETE from ${ohdsiSchema}.sec_user_role where role_id != 2; -- role 2 is the standard "admin" role
