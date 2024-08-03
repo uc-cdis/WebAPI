@@ -915,7 +915,7 @@
     <dependency>
       <groupId>com.microsoft.azure</groupId>
       <artifactId>msal4j</artifactId>
-      <version>1.16.1</version>
+      <version>1.10.0</version>
     </dependency>
     <dependency>
       <groupId>com.opencsv</groupId>
@@ -1311,11 +1311,6 @@
         <artifactId>dbunit-plus</artifactId>
         <version>2.0.1</version>
         <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.nimbusds</groupId>
-      <artifactId>oauth2-oidc-sdk</artifactId>
-      <version>11.12</version>
     </dependency>
   </dependencies>
   <profiles>
