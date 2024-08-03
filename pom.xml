@@ -526,6 +526,11 @@
       <name>repo.ohdsi.org</name>
       <url>https://repo.ohdsi.org/nexus/content/groups/public</url>
     </repository>
+    <repository>
+      <id>maven_central</id>
+      <name>Maven Central</name>
+      <url>https://repo.maven.apache.org/maven2/</url>
+    </repository>
   </repositories>
 
   <pluginRepositories>
@@ -910,7 +915,7 @@
     <dependency>
       <groupId>com.microsoft.azure</groupId>
       <artifactId>msal4j</artifactId>
-      <version>1.15.1</version>
+      <version>1.16.1</version>
     </dependency>
     <dependency>
       <groupId>com.opencsv</groupId>
