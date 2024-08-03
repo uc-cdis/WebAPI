@@ -1312,6 +1312,11 @@
         <version>2.0.1</version>
         <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>oauth2-oidc-sdk</artifactId>
+      <version>11.12</version>
+    </dependency>
   </dependencies>
   <profiles>
     <profile>
