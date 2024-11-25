@@ -13,12 +13,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.web.servlet.AdviceFilter;
 import org.apache.shiro.web.util.WebUtils;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.ohdsi.webapi.shiro.PermissionManager;
 import org.ohdsi.webapi.shiro.Entities.RoleEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -134,40 +134,39 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
     logger.debug("Checking Gen3 Authorization for 'team project'={} and user={} using service={}", teamProjectRole, login, this.authorizationUrl);
     RestTemplate restTemplate = new RestTemplate();
     String arboristAuthorizationURL = this.authorizationUrl;
-    String requestBody = String.format("{\"username\": \"%s\"}", login);
-    String jsonResponseString = restTemplate.postForObject(arboristAuthorizationURL, requestBody, String.class);
-
-    JSONObject jsonObject = new JSONObject(jsonResponseString);
-
-    if (!jsonObject.keySet().contains(teamProjectRole)) {
-      logger.warn("User is not authorized to access this team project's data");
-      return false;
-    } else {
-      JSONArray teamProjectAuthorizations = jsonObject.getJSONArray(teamProjectRole);
-      logger.debug("Found authorizations={}", teamProjectAuthorizations);
-      // We expect two authorization rules per teamproject:
-      if (teamProjectAuthorizations.length() != 2) {
-        logger.error("Two authorization rules expected for 'teamproject'={}, found={}", teamProjectRole,
-          teamProjectAuthorizations.length());
-        return false;
-      }
-      String expectedMethod = "access";
-      String expectedService = "atlas-argo-wrapper-and-cohort-middleware"; // TODO - make the service name configurable?
-      for(int i = 0; i < teamProjectAuthorizations.length(); i++) {
-        JSONObject teamProjectAuthorization = teamProjectAuthorizations.getJSONObject(i);
-        // check if the authorization contains the right "service" and "method" values:
-        String service = teamProjectAuthorization.getString("service");
-        String method = teamProjectAuthorization.getString("method");
-        logger.debug("Parsed service={} and method={}", service, method);
-        if (method.equalsIgnoreCase(expectedMethod) && service.equalsIgnoreCase(expectedService)) {
-          logger.debug("Parsed method is as expected");
-          logger.debug("Parsed service is as expected");
+    String expectedMethod = "access";
+    String expectedService = "atlas-argo-wrapper-and-cohort-middleware"; // TODO - make the service name configurable?
+    String requestBody = String.format(
+      "{\"user\": {" +
+      "    \"user_id\": \"%s\"" +
+      "  }," +
+      "  \"request\": {\n" +
+      "    \"resource\": \"%s\"," +
+      "    \"action\": {" +
+      "      \"service\": \"%s\"," +
+      "      \"method\": \"%s\"" +
+      "    }" +
+      "  }" +
+      "}", 
+      login, teamProjectRole, expectedService, expectedMethod
+    );
+    ResponseEntity<String> responseEntity = restTemplate.postForEntity(arboristAuthorizationURL, requestBody, String.class);
+    if (responseEntity.getStatusCode().value() == 200) {
+      String responseBody = responseEntity.getBody();
+      JSONObject jsonObject = new JSONObject(responseBody);
+        if (jsonObject.optBoolean("auth", false)) { 
+          // auth is true, handle success
+          logger.debug("Authorization successful!");
           return true;
-        }
+      } else {
+          // auth response is missing or false
+          logger.error("Authorization failed.");
+          return false;
       }
-      logger.error("The 'teamproject' authorization method should be '{}', but was not found", expectedMethod);
-      logger.error("The 'teamproject' authorization service should be '{}', but was not found", expectedService);
-      return false;
+    } else {
+        // HTTP response status is not 200
+        logger.error("Request failed with status: {} ", responseEntity.getStatusCode());
+        return false;
     }
   }
 
