@@ -618,7 +618,7 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.13</version>
+        <version>1.14</version>
       </dependency>
       <dependency>
         <groupId>org.codehaus.jettison</groupId>
@@ -739,7 +739,7 @@
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
-      <version>1.4.20</version>
+      <version>1.4.21</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
