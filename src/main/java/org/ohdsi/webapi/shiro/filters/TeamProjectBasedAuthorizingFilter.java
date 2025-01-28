@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.ohdsi.webapi.shiro.TokenManager;
+import org.apache.shiro.session.Session;
 
 /**
  * Filter class to dynamically assign a "team project" role to the
@@ -62,6 +64,13 @@ public class TeamProjectBasedAuthorizingFilter extends AdviceFilter {
           boolean foundValidTeamProject = extractAndValidateTeamProjectRoleAndUpdateUserIfNecessary(this, login, request, response);
           if (!foundValidTeamProject) {
             return false;
+          }
+          else {          
+            logger.debug("Team Project Valid. Looking for previously authenticated sessions to logout.");
+            Session session = SecurityUtils.getSubject().getSession(false);
+            if (session != null) {
+              session.stop();
+            }
           }
         }
 

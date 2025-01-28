@@ -116,6 +116,7 @@ public class UpdateAccessTokenFilter extends AdviceFilter {
     login = UserUtils.toLowerCase(login);
 
     // stop session to make logout of OAuth users possible
+    //IMPORTANT: This code block is also responsible for logging out duplicate sessions from the same user
     Session session = SecurityUtils.getSubject().getSession(false);
     if (session != null) {
       session.stop();
