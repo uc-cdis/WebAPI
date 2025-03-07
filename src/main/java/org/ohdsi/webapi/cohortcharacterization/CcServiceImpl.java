@@ -547,9 +547,11 @@ public class CcServiceImpl extends AbstractDaoService implements CcService, Gene
 
     @Override
     public Page<CohortCharacterizationEntity> getPage(final Pageable pageable) {
-      List<CohortCharacterizationEntity> ccList = repository.findAll()
-              .stream().filter(!defaultGlobalReadPermissions ? entity -> permissionService.hasReadAccess(entity) : entity -> true)
+      List<CohortCharacterizationEntity> ccList = repository.findAll();
+      log.debug("UNFILTERED CC list size {}", ccList.size());
+      ccList = ccList.stream().filter(!defaultGlobalReadPermissions ? entity -> permissionService.hasReadAccess(entity) : entity -> true)
               .collect(Collectors.toList());
+       log.debug("FILTERED CC list size {}", ccList.size());
       return getPageFromResults(pageable, ccList);
     }
     

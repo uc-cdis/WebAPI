@@ -375,14 +375,15 @@ public class CcController {
 
     /**
      * Get generation information by generation id
+     * @param id The id for an existing cohort characterization
      * @param generationId The generation id to look up
      * @return Data about the generation including the generation id, sourceKey, hashcode, start and end times
      */
     @GET
-    @Path("/generation/{generationId}")
+    @Path("/{id}/generation/{generationId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public CommonGenerationDTO getGeneration(@PathParam("generationId") final Long generationId) {
+    public CommonGenerationDTO getGeneration(@PathParam("id") final Long id, @PathParam("generationId") final Long generationId) {
 
         CcGenerationEntity generationEntity = service.findGenerationById(generationId);
         return sensitiveInfoService.filterSensitiveInfo(conversionService.convert(generationEntity, CommonGenerationDTO.class),
@@ -391,76 +392,80 @@ public class CcController {
 
     /**
      * Delete a cohort characterization generation
+     * @param id The id for an existing cohort characterization
      * @param generationId
      */
-    @DELETE
-    @Path("/generation/{generationId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void deleteGeneration(@PathParam("generationId") final Long generationId) {
-        service.deleteCcGeneration(generationId);
-    }
+    // @DELETE //not used
+    // @Path("/generation/{generationId}")
+    // @Produces(MediaType.APPLICATION_JSON)
+    // @Consumes(MediaType.APPLICATION_JSON)
+    // public void deleteGeneration(@PathParam("id") final Long id, @PathParam("generationId") final Long generationId) {
+    //     service.deleteCcGeneration(generationId);
+    // }
 
     /**
      * Get the definition of a cohort characterization for a given generation id
+     * @param id The id for an existing cohort characterization
      * @param generationId
      * @return A cohort characterization definition
      */
     @GET
-    @Path("/generation/{generationId}/design")
+    @Path("/{id}/generation/{generationId}/design")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public CcExportDTO getGenerationDesign(
-            @PathParam("generationId") final Long generationId) {
+        @PathParam("id") final Long id, @PathParam("generationId") final Long generationId) {
         return conversionService.convert(service.findDesignByGenerationId(generationId), CcExportDTO.class);
     }
 
     /**
      * Get the total number of analyses in a cohort characterization
      *
+     * @param id The id for an existing cohort characterization
      * @param generationId
      * @return The total number of analyses in the given cohort characterization
      */
     @GET
-    @Path("/generation/{generationId}/result/count")
+    @Path("/{id}/generation/{generationId}/result/count")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Long getGenerationsResultsCount( @PathParam("generationId") final Long generationId) {
+    public Long getGenerationsResultsCount(@PathParam("id") final Long id, @PathParam("generationId") final Long generationId) {
         return service.getCCResultsTotalCount(generationId);
     }
 
     /**
      * Get cohort characterization results
+     * @param id The id for an existing cohort characterization
      * @param generationId id for generation
      * @param thresholdLevel The max prevelance for a covariate. Covariates that occur in less than {threholdLevel}%
      *                       of the cohort will not be returned. Default is 0.01 = 1%
      * @return The complete set of characterization analyses filtered by the thresholdLevel parameter
      */
-    @GET
-    @Path("/generation/{generationId}/result")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public List<CcResult> getGenerationsResults(
-            @PathParam("generationId") final Long generationId, @DefaultValue("0.01") @QueryParam("thresholdLevel") final float thresholdLevel) {
-        return service.findResultAsList(generationId, thresholdLevel);
-    }
+    // @GET //NOT USED
+    // @Path("/{id}/generation/{generationId}/result")
+    // @Produces(MediaType.APPLICATION_JSON)
+    // @Consumes(MediaType.APPLICATION_JSON)
+    // public List<CcResult> getGenerationsResults(
+    //     @PathParam("id") final Long id, @PathParam("generationId") final Long generationId, @DefaultValue("0.01") @QueryParam("thresholdLevel") final float thresholdLevel) {
+    //     return service.findResultAsList(generationId, thresholdLevel);
+    // }
 
     @POST
-    @Path("/generation/{generationId}/result")
+    @Path("/{id}/generation/{generationId}/result")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @ReturnType("java.lang.Object")
     public GenerationResults getGenerationsResults(
-            @PathParam("generationId") final Long generationId, @RequestBody ExportExecutionResultRequest params) {
+        @PathParam("id") final Long id, @PathParam("generationId") final Long generationId, @RequestBody ExportExecutionResultRequest params) {
         return service.findData(generationId, params);
     }
 
     @POST
-    @Path("/generation/{generationId}/result/export")
+    @Path("/{id}/generation/{generationId}/result/export")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response exportGenerationsResults(
-            @PathParam("generationId") final Long generationId, ExportExecutionResultRequest params) {
+        @PathParam("id") final Long id, @PathParam("generationId") final Long generationId, ExportExecutionResultRequest params) {
         GenerationResults res = service.exportExecutionResult(generationId, params);
         return prepareExecutionResultResponse(res.getReports());
     }
@@ -511,9 +516,10 @@ public class CcController {
     }
 
     @GET
-    @Path("/generation/{generationId}/explore/prevalence/{analysisId}/{cohortId}/{covariateId}")
+    @Path("/{id}/generation/{generationId}/explore/prevalence/{analysisId}/{cohortId}/{covariateId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<CcPrevalenceStat> getPrevalenceStat(@PathParam("generationId") Long generationId,
+    public List<CcPrevalenceStat> getPrevalenceStat(@PathParam("id") final Long id, 
+                                                    @PathParam("generationId") Long generationId,
                                                     @PathParam("analysisId") Long analysisId,
                                                     @PathParam("cohortId") Long cohortId,
                                                     @PathParam("covariateId") Long covariateId) {
