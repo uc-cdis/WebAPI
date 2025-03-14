@@ -182,7 +182,7 @@ public class PermissionManager {
         this.userRoleRepository.delete(userRole);
       }
     } else {
-          logger.debug("Role {} not found", roleName);
+          logger.debug("Role {} not found as a user role - likely a system role", roleName);
     }
   }
 
