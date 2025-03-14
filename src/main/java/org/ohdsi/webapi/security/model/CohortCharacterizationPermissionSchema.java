@@ -26,7 +26,6 @@ public class CohortCharacterizationPermissionSchema extends EntityPermissionSche
        // Have specific ones instead:
        put("cohort-characterization:%s:generation:*:get", "Get any generation for a cohort characterization record");
        put("cohort-characterization:%s:design:get", "Get cohort characterization design");                         
-       put("cohort-characterization:design:%s:get", "view cohort characterization with id %s");
        put("cohort-characterization:%s:version:get", "Get list of characterization versions");                         
        put("cohort-characterization:%s:version:*:get", "Get list of characterization version");
        // new generation permissions based on previous ones that were too broad:
