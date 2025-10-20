@@ -94,9 +94,6 @@ public abstract class AtlasSecurity extends Security {
     if (this.authorizationMode.equals("teamproject")){
       // add system role that enables read restrictions/permissions based read access configurations:
       this.defaultRoles.add("read restricted Atlas Users"); // aka reserved system role 15
-      // TMP: adding "Atlas User" as well until we have another round of refining role 15 - this to avoid all kind of 403's after latest rebase in DEV env:
-      // TODO - temporary - remove this:
-      this.defaultRoles.add("Atlas users");
     }
     fillFilters();
   }
