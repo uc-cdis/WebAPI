@@ -264,8 +264,12 @@ public class PermissionService {
     }
 
 		// Use this key for cache (asset lists) that may be associated to a user or shared across users.
+        // TODO - remove method? Does not seem to be used anywhere...
 		public String getAssetListCacheKey() {
-			if (this.isSecurityEnabled() && !defaultGlobalReadPermissions) 
+            if (this.authorizationMode.equals("teamproject")) {
+                RoleEntity teamProjectRole = this.permissionManager.getCurrentTeamProjectRoleForCurrentUser();
+                return "user:" + permissionManager.getSubjectName() + "/teamProjectRole:" +  teamProjectRole;
+            } else if (this.isSecurityEnabled() && !defaultGlobalReadPermissions) 
 				return permissionManager.getSubjectName();
 			else
 				return "ALL_USERS";
@@ -273,6 +277,10 @@ public class PermissionService {
 		
 		// use this cache key when the cache is associated to a user
 		public String getSubjectCacheKey() {
+            if (this.authorizationMode.equals("teamproject")) {
+                RoleEntity teamProjectRole = this.permissionManager.getCurrentTeamProjectRoleForCurrentUser();
+                return "user:" + permissionManager.getSubjectName() + "/teamProjectRole:" +  teamProjectRole;
+            }
 			return this.isSecurityEnabled() ? permissionManager.getSubjectName() : "ALL_USERS";
 		}
 }
