@@ -5,9 +5,9 @@ name: CI CTDS
 # this branch (note: this ci_custom.yaml file is a simplified version of the ci.yaml file in this same directory)
 on:
   push:
-    branches: [ 2.15.0-DEV ]
+    branches: [ 2.15.0-DEV, feat/pull_upstream_into_2.15_DEV ]
   pull_request:
-    branches: [ 2.15.0-DEV ]
+    branches: [ 2.15.0-DEV, feat/pull_upstream_into_2.15_DEV ]
 
 jobs:
   # Build and test the code
