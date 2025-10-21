@@ -699,6 +699,7 @@ public class CohortDefinitionService extends AbstractDaoService implements HasTa
 	@Transactional
 	@Cacheable(cacheNames = CachingSetup.COHORT_DEFINITION_LIST_CACHE, key = "@permissionService.getSubjectCacheKey()")
 	public List<CohortMetadataDTO> getCohortDefinitionList() {
+		log.info("Retrieving cohort definitions list with defaultGlobalReadPermissions = {}", defaultGlobalReadPermissions);
 		List<CohortDefinition> definitions = cohortDefinitionRepository.list();
 		return definitions.stream()
 						.filter(!defaultGlobalReadPermissions ? entity -> permissionService.hasReadAccess(entity) : entity -> true)
