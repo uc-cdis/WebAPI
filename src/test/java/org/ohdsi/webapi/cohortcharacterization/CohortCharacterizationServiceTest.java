@@ -139,7 +139,7 @@ public class CohortCharacterizationServiceTest extends AbstractDatabaseTest {
     private void checkRequest(CohortCharacterizationEntity entity, Long generationId, ParamItem paramItem) throws IOException {
         String dataItemMessage = String.format("Checking dataitem %s", paramItem.toString());
         try {
-            ZipFile zipFile = getZipFile(generationId, paramItem);
+            ZipFile zipFile = getZipFile(entity.getId(), generationId, paramItem);
             if (paramItem.fileItems.isEmpty()) {
                 // File is valid
                 assertTrue(dataItemMessage, zipFile.isValidZipFile());
@@ -175,7 +175,7 @@ public class CohortCharacterizationServiceTest extends AbstractDatabaseTest {
         }
     }
 
-    private ZipFile getZipFile(Long id, ParamItem paramItem) throws IOException {
+    private ZipFile getZipFile(Long id, Long generationId, ParamItem paramItem) throws IOException {
         ExportExecutionResultRequest request = new ExportExecutionResultRequest();
         request.setCohortIds(paramItem.cohortIds);
         request.setAnalysisIds(paramItem.analysisIds);
@@ -183,7 +183,7 @@ public class CohortCharacterizationServiceTest extends AbstractDatabaseTest {
         request.setSummary(paramItem.isSummary);
         request.setComparative(paramItem.isComparative);
 
-        Response response = ccController.exportGenerationsResults(id, request);
+        Response response = ccController.exportGenerationsResults(id, generationId, request);
         assertEquals(200, response.getStatus());
 
         ByteArrayOutputStream baos = (ByteArrayOutputStream) response.getEntity();
