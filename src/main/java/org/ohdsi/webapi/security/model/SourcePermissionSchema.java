@@ -30,7 +30,6 @@ public class SourcePermissionSchema extends EntityPermissionSchema {
 
     private static Map<String, String> readPermissions = new HashMap<String, String>() {{
         put("cohortdefinition:*:report:%s:get", "Get Inclusion Rule Report for Source with SourceKey = %s");
-        put("cohortdefinition:*:generate:%s:get", "Generate Cohort on Source with SourceKey = %s");
         put("cohortdefinition:*:cancel:%s:get", "Cancel Cohort Generation on Source with SourceKey = %s");
         put("vocabulary:%s:*:get", "Get vocabulary info on Source with SourceKey = %s");
         put("vocabulary:%s:included-concepts:count:post", "Get vocab concept counts on Source with SourceKey = %s");
@@ -94,7 +93,7 @@ public class SourcePermissionSchema extends EntityPermissionSchema {
         dropSourceUserRole(commonEntity);
     }
 
-    public void addSourceUserRole(CommonEntity commonEntity) {
+    public RoleEntity addSourceUserRole(CommonEntity commonEntity) {
 
         Source source = (Source) commonEntity;
         final String roleName = getSourceRoleName(source.getSourceKey());
@@ -105,6 +104,7 @@ public class SourcePermissionSchema extends EntityPermissionSchema {
             role = permissionManager.addRole(roleName, true);
         }
         permissionManager.addPermissionsFromTemplate(role, getReadPermissions(), source.getSourceKey());
+        return role;
     }
 
     private void dropSourceUserRole(CommonEntity commonEntity) {
