@@ -100,8 +100,22 @@ public class PermissionService {
 
         // Migrated from Atlas security. Is it still required?
         for (Source source : sourceRepository.findAll()) {
-            sourcePermissionSchema.addSourceUserRole(source);
-        }
+            RoleEntity sourceUserRole = sourcePermissionSchema.addSourceUserRole(source);
+            // validate that only teamproject roles have the "cohortdefinition:*:generate:%s:get"
+            // permission if authorizationMode is "teamproject":
+            if (this.authorizationMode.equals("teamproject")) {
+                for (RolePermissionEntity permission : sourceUserRole.getRolePermissions()) {
+                    String valueToCheck = String.format("cohortdefinition:*:generate:%s:get", source.getSourceKey());
+                    if (permission.getPermission().getValue().equals(valueToCheck)) {
+                        String errorText = String.format("Invalid permission found: %s. When 'teamproject' authorization mode is selected, "+
+                            "the cohortdefinition:*:generate permission needs to be assigned to teamproject roles and NOT to 'sourceuser' roles",
+                            permission);
+                        logger.error(errorText);
+                        throw new RuntimeException(errorText);
+                    }
+                }
+            }
+        }        
     }
 
     public List<RoleEntity> suggestRoles(String roleSearch) {
