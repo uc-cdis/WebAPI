@@ -4,14 +4,29 @@ import org.ohdsi.webapi.model.CommonEntity;
 import org.ohdsi.webapi.shiro.Entities.RoleEntity;
 import org.ohdsi.webapi.source.Source;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import static org.ohdsi.webapi.shiro.management.Security.SOURCE_ACCESS_PERMISSION;
 
 @Component
 public class SourcePermissionSchema extends EntityPermissionSchema {
+
+    @Value("${security.ohdsi.custom.authorization.mode}")
+    private String authorizationMode;
+
+    @PostConstruct
+    public void init() {
+        // Only add this one to readPermissions map if NOT in "teamproject" mode. If in "teamproject" mode, we
+        // want this permission to (manually) be assigned (by an admin) to the teamproject roles instead:
+        if (!this.authorizationMode.equals("teamproject")) {
+            getReadPermissions().put("cohortdefinition:*:generate:%s:get", "Generate Cohort on Source with SourceKey = %s");
+        }
+    }
 
     private static Map<String, String> readPermissions = new HashMap<String, String>() {{
         put("cohortdefinition:*:report:%s:get", "Get Inclusion Rule Report for Source with SourceKey = %s");
