@@ -33,6 +33,7 @@ import org.springframework.web.context.WebApplicationContext;
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,15 +105,16 @@ public class PermissionService {
             // validate that only teamproject roles have the "cohortdefinition:*:generate:%s:get"
             // permission if authorizationMode is "teamproject":
             if (this.authorizationMode.equals("teamproject")) {
-                for (RolePermissionEntity permission : sourceUserRole.getRolePermissions()) {
-                    String valueToCheck = String.format("cohortdefinition:*:generate:%s:get", source.getSourceKey());
-                    if (permission.getPermission().getValue().equals(valueToCheck)) {
-                        String errorText = String.format("Invalid permission found: %s. When 'teamproject' authorization mode is selected, "+
-                            "the cohortdefinition:*:generate permission needs to be assigned to teamproject roles and NOT to 'sourceuser' roles",
-                            permission);
-                        logger.error(errorText);
-                        throw new RuntimeException(errorText);
-                    }
+                String permissionToCheck = String.format("cohortdefinition:*:generate:%s:get", source.getSourceKey());
+                boolean permissionIsTiedToRole = finaAllRolesHavingPermissions(Collections.singletonList(permissionToCheck)).stream()
+                                    .anyMatch(r -> r.getId().equals(sourceUserRole.getId()));
+
+                if (permissionIsTiedToRole) {
+                    String errorText = String.format("Invalid permission found: %s. When 'teamproject' authorization mode is selected, "+
+                        "the cohortdefinition:*:generate permission needs to be assigned to teamproject roles and NOT to 'sourceuser' roles",
+                        permissionToCheck);
+                    logger.error(errorText);
+                    throw new RuntimeException(errorText);
                 }
             }
         }        
