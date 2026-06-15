@@ -66,6 +66,9 @@ public class PermissionService {
     @Value("${security.ohdsi.custom.authorization.mode}")
     private String authorizationMode;
 
+    // TODO - add something like @Value("${security.ohdsi.custom.authorization.teamProjectsPrefix}") to make this configurable
+    private String teamProjectsPrefix = "/gwas_projects/";
+
 	@Value("${security.defaultGlobalReadPermissions}")
 	private boolean defaultGlobalReadPermissions;
 
@@ -98,21 +101,24 @@ public class PermissionService {
     private void postConstruct() {
 
         this.repositories = new Repositories(appContext);
+        logger.info("PermissionService - AUTHORIZATION_MODE === '{}'", this.authorizationMode);
 
         // Migrated from Atlas security. Is it still required?
         for (Source source : sourceRepository.findAll()) {
-            RoleEntity sourceUserRole = sourcePermissionSchema.addSourceUserRole(source);
+            sourcePermissionSchema.addSourceUserRole(source);
             // validate that only teamproject roles have the "cohortdefinition:*:generate:%s:get"
             // permission if authorizationMode is "teamproject":
             if (this.authorizationMode.equals("teamproject")) {
                 String permissionToCheck = String.format("cohortdefinition:*:generate:%s:get", source.getSourceKey());
-                boolean permissionIsTiedToRole = finaAllRolesHavingPermissions(Collections.singletonList(permissionToCheck)).stream()
-                                    .anyMatch(r -> r.getId().equals(sourceUserRole.getId()));
+                logger.info("PermissionService - checking permission === '{}'", permissionToCheck);
+                List<String> notTeamProjectRoleNames  = finaAllRolesHavingPermissions(Collections.singletonList(permissionToCheck)).stream()
+                                    .filter(r -> !r.getName().startsWith(this.teamProjectsPrefix))
+                                    .map(RoleEntity::getName).collect(Collectors.toList());
 
-                if (permissionIsTiedToRole) {
-                    String errorText = String.format("Invalid permission found: %s. When 'teamproject' authorization mode is selected, "+
-                        "the cohortdefinition:*:generate permission needs to be assigned to teamproject roles and NOT to 'sourceuser' roles",
-                        permissionToCheck);
+                if (notTeamProjectRoleNames.size() > 0) {
+                    String errorText = String.format("Invalid permission configuration found for permission [%s]. When 'teamproject' authorization mode is selected, "+
+                        "the [%s] permission needs to be assigned to teamproject roles ONLY and NOT to other roles. Other roles found attached to this permission: %s",
+                        permissionToCheck, permissionToCheck, notTeamProjectRoleNames);
                     logger.error(errorText);
                     throw new RuntimeException(errorText);
                 }
