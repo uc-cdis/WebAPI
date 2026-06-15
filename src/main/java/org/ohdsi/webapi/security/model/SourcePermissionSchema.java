@@ -93,7 +93,7 @@ public class SourcePermissionSchema extends EntityPermissionSchema {
         dropSourceUserRole(commonEntity);
     }
 
-    public RoleEntity addSourceUserRole(CommonEntity commonEntity) {
+    public void addSourceUserRole(CommonEntity commonEntity) {
 
         Source source = (Source) commonEntity;
         final String roleName = getSourceRoleName(source.getSourceKey());
@@ -104,7 +104,6 @@ public class SourcePermissionSchema extends EntityPermissionSchema {
             role = permissionManager.addRole(roleName, true);
         }
         permissionManager.addPermissionsFromTemplate(role, getReadPermissions(), source.getSourceKey());
-        return role;
     }
 
     private void dropSourceUserRole(CommonEntity commonEntity) {
