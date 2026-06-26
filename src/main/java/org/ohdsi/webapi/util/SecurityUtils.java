@@ -34,6 +34,7 @@ public class SecurityUtils {
         } else if (exception instanceof TransactionException) {
             return "Transaction exception";
         } else if (exception instanceof DataAccessException) {
+            exception.printStackTrace();
             return "Data access exception";
         } else if (exception instanceof SQLException) {
             return "SQL exception";
